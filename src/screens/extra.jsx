@@ -94,7 +94,7 @@ export const AddTransactionSheet = ({ theme, onClose }) => {
         )}
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
           <div style={{ fontSize: 11, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 }}>Importe</div>
-          <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: -1.6, color: accent, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6, fontFamily: 'Poppins' }}>
+          <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: -1.6, color: accent, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6, fontFamily: 'inherit' }}>
             <span style={{ fontSize: 28, opacity: 0.7 }}>{sign}</span>
             <span>{amount}</span>
             <span style={{ fontSize: 22, color: t.text2, fontWeight: 500 }}>€</span>
@@ -178,7 +178,7 @@ export const AddTransactionSheet = ({ theme, onClose }) => {
             </div>
           )}
         </Card>
-        <input value={note} onChange={e => setNote(e.target.value)} placeholder="Añadir nota (opcional)" style={{ width: '100%', boxSizing: 'border-box', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '14px 16px', fontSize: 13, color: t.text, outline: 'none', fontFamily: 'Poppins', marginBottom: 10, display: 'block' }}/>
+        <input value={note} onChange={e => setNote(e.target.value)} placeholder="Añadir nota (opcional)" style={{ width: '100%', boxSizing: 'border-box', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '14px 16px', fontSize: 13, color: t.text, outline: 'none', fontFamily: 'inherit', marginBottom: 10, display: 'block' }}/>
 
         {/* Ubicación */}
         <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '0 16px', height: 48, gap: 10, marginBottom: 14 }}>
@@ -187,7 +187,7 @@ export const AddTransactionSheet = ({ theme, onClose }) => {
             value={location}
             onChange={e => setLocation(e.target.value)}
             placeholder="Añadir ubicación (opcional)"
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 13 }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13 }}
           />
           {location && (
             <div onClick={() => setLocation('')} style={{ cursor: 'pointer', flexShrink: 0 }}>
@@ -213,10 +213,10 @@ export const AddTransactionSheet = ({ theme, onClose }) => {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 14 }}>
           {['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k => (
-            <div key={k} onClick={() => press(k)} style={{ padding: '12px 0', textAlign: 'center', borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 18, fontWeight: 500, cursor: 'pointer', fontFamily: 'Poppins' }}>{k}</div>
+            <div key={k} onClick={() => press(k)} style={{ padding: '12px 0', textAlign: 'center', borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 18, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{k}</div>
           ))}
         </div>
-        <button onClick={onClose} style={{ width: '100%', height: 54, borderRadius: 27, border: 'none', background: accent, color: '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+        <button onClick={onClose} style={{ width: '100%', height: 54, borderRadius: 27, border: 'none', background: accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
           {type === 'income' ? 'Añadir ingreso' : type === 'transfer' ? 'Hacer transferencia' : isRefund ? 'Añadir reembolso' : 'Añadir gasto'}
         </button>
       </div>

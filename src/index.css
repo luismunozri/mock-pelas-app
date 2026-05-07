@@ -1,10 +1,16 @@
+:root {
+  --pelas-accent: #0066FF;
+  --pelas-accent-rgb: 0, 102, 255;
+  --pelas-font: 'Poppins', system-ui, sans-serif;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: var(--pelas-font);
   background: #0a0a12;
   color: #fff;
   -webkit-font-smoothing: antialiased;
@@ -15,7 +21,7 @@ body.theme-light {
   color: #1e1e2d;
 }
 
-button { font-family: inherit; }
+button { font-family: var(--pelas-font); }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
 #root {
