@@ -1,0 +1,35 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: 'Poppins', system-ui, sans-serif;
+  background: #0a0a12;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.theme-light {
+  background: #f4f6fb;
+  color: #1e1e2d;
+}
+
+button { font-family: inherit; }
+::-webkit-scrollbar { width: 0; height: 0; }
+
+#root {
+  width: 100%;
+  margin: 0;
+  text-align: left;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}

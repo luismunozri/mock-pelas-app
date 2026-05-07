@@ -1,0 +1,16 @@
+export const T = (theme) => ({
+  bg:           theme === 'dark' ? '#0E0E1A' : '#F4F6FB',
+  surface:      theme === 'dark' ? '#1E1E2D' : '#FFFFFF',
+  surface2:     theme === 'dark' ? '#252537' : '#F4F6FB',
+  border:       theme === 'dark' ? '#23253355' : '#E6E8EE',
+  borderStrong: theme === 'dark' ? '#2A2C3C' : '#DCE0EA',
+  text:         theme === 'dark' ? '#FFFFFF' : '#1E1E2D',
+  text2:        theme === 'dark' ? '#A2A2A7' : '#7E848D',
+  text3:        theme === 'dark' ? '#7E848D' : '#A2A2A7',
+  accent:       '#0066FF',
+  accentSoft:   theme === 'dark' ? 'rgba(0,102,255,0.14)' : 'rgba(0,102,255,0.10)',
+  positive:     '#3FB984',
+  negative:     '#E16364',
+  warning:      '#FFC234',
+  cardChrome:   theme === 'dark' ? '#252539' : '#1E1E2D',
+});
