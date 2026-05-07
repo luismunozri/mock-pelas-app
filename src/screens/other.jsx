@@ -238,8 +238,8 @@ const FilterDrawer = ({ theme, open, onClose, filters, setFilters, onApply, onRe
           </FilterSection>
         </div>
         <div style={{ padding: '12px 20px', borderTop: `1px solid ${t.border}`, display: 'flex', gap: 8, flexShrink: 0, background: t.bg }}>
-          <button onClick={onReset} style={{ flex: 1, height: 46, borderRadius: 23, background: t.surface2, border: `1px solid ${t.border}`, color: t.text, fontFamily: 'Poppins', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Limpiar</button>
-          <button onClick={onApply} style={{ flex: 1.6, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Mostrar {count}</button>
+          <button onClick={onReset} style={{ flex: 1, height: 46, borderRadius: 23, background: t.surface2, border: `1px solid ${t.border}`, color: t.text, fontFamily: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Limpiar</button>
+          <button onClick={onApply} style={{ flex: 1.6, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Mostrar {count}</button>
         </div>
       </div>
     </>
@@ -476,7 +476,7 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
   const t = T(theme);
   const groups = [
     { title: 'Cuenta', items: [{ icon: 'user', label: 'Datos personales', sub: 'Nombre, email, teléfono' }, { icon: 'card', label: 'Tarjetas y cuentas', sub: '2 tarjetas vinculadas' }, { icon: 'lock', label: 'Seguridad', sub: 'Biometría, PIN, contraseña' }] },
-    { title: 'Preferencias', items: [{ icon: 'bell', label: 'Notificaciones', sub: 'Personaliza alertas' }, { icon: 'globe', label: 'Idioma', sub: 'Español (España)' }, { icon: 'people', label: 'Cuentas compartidas', sub: '2 grupos activos' }] },
+    { title: 'Preferencias', items: [{ icon: 'bell', label: 'Notificaciones', sub: 'Personaliza alertas' }, { icon: 'settings', label: 'Tema y estilo', sub: 'Personaliza colores y fuentes', onClick: () => onNavigate('theme-style') }, { icon: 'globe', label: 'Idioma', sub: 'Español (España)' }, { icon: 'people', label: 'Cuentas compartidas', sub: '2 grupos activos' }] },
     { title: 'Ayuda', items: [{ icon: 'mail', label: 'Soporte', sub: 'Estamos aquí 24/7' }, { icon: 'book', label: 'Términos y condiciones' }, { icon: 'logout', label: 'Cerrar sesión', danger: true }] },
   ];
   return (
@@ -509,7 +509,7 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
           <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>{g.title}</div>
           <Card theme={theme} padding={6} radius={18}>
             {g.items.map((it, i) => (
-              <div key={it.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px', borderBottom: i < g.items.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
+              <div key={it.label} onClick={it.onClick} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px', borderBottom: i < g.items.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
                 <div style={{ width: 36, height: 36, borderRadius: 12, background: it.danger ? 'rgba(225,99,100,0.16)' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <PelasIcon name={it.icon} size={16} color={it.danger ? t.negative : t.accent}/>
                 </div>
@@ -600,7 +600,7 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
       <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 6 }}>
         <input value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g,''))} placeholder={placeholder} inputMode="decimal"
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 15, fontWeight: 500 }}/>
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 15, fontWeight: 500 }}/>
         <span style={{ fontSize: 14, color: t.text2 }}>€</span>
       </div>
     </div>
@@ -623,7 +623,7 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
             <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>Nombre</div>
             <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48 }}>
               <input value={form.label} onChange={e => set('label', e.target.value)} placeholder="p. ej. Comida y restaurantes"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -640,7 +640,7 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
           </div>
         </div>
         <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
-          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: !form.label.trim() || !form.budget ? t.surface2 : t.accent, color: !form.label.trim() || !form.budget ? t.text2 : '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: !form.label.trim() || !form.budget ? t.surface2 : t.accent, color: !form.label.trim() || !form.budget ? t.text2 : '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
             {isEdit ? 'Guardar cambios' : 'Crear presupuesto'}
           </button>
         </div>
@@ -742,7 +742,7 @@ export const BudgetsScreen = ({ theme, onBack }) => {
       </div>
 
       {/* FAB */}
-      <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.accent, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'Poppins', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,102,255,0.35)' }}>
+      <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.accent, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,102,255,0.35)' }}>
         <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.6}/>
         Nuevo presupuesto
       </div>
@@ -795,7 +795,7 @@ const AddGoalSheet = ({ theme, initial, onSave, onClose }) => {
       <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 6 }}>
         <input value={value} onChange={e => onChange(e.target.value.replace(/[^0-9.]/g,''))} placeholder={placeholder} inputMode="decimal"
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 15, fontWeight: 500 }}/>
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 15, fontWeight: 500 }}/>
         <span style={{ fontSize: 14, color: t.text2 }}>€</span>
       </div>
     </div>
@@ -826,7 +826,7 @@ const AddGoalSheet = ({ theme, initial, onSave, onClose }) => {
             <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>Nombre de la meta</div>
             <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48 }}>
               <input value={form.label} onChange={e => set('label', e.target.value)} placeholder="p. ej. Viaje a Japón"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
             </div>
           </div>
 
@@ -840,7 +840,7 @@ const AddGoalSheet = ({ theme, initial, onSave, onClose }) => {
             <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 8 }}>
               <PelasIcon name="calendar" size={16} color={t.text2}/>
               <input value={form.due} onChange={e => set('due', e.target.value)} placeholder="p. ej. Octubre 2026"
-                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
             </div>
           </div>
 
@@ -867,7 +867,7 @@ const AddGoalSheet = ({ theme, initial, onSave, onClose }) => {
           </div>
         </div>
         <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
-          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: !form.label.trim() || !form.target ? t.surface2 : t.accent, color: !form.label.trim() || !form.target ? t.text2 : '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: !form.label.trim() || !form.target ? t.surface2 : t.accent, color: !form.label.trim() || !form.target ? t.text2 : '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
             {isEdit ? 'Guardar cambios' : 'Crear meta'}
           </button>
         </div>
@@ -963,7 +963,7 @@ export const GoalsScreen = ({ theme, onBack }) => {
       </div>
 
       {/* FAB */}
-      <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.positive, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'Poppins', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(63,185,132,0.35)' }}>
+      <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.positive, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(63,185,132,0.35)' }}>
         <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.6}/>
         Nueva meta
       </div>
@@ -989,7 +989,7 @@ export const SearchScreen = ({ theme, onBack, onNavigate }) => {
         </div>
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 20, padding: '0 14px', height: 44 }}>
           <PelasIcon name="search" size={18} color={t.text2}/>
-          <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar gastos, ingresos…" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 13.5 }}/>
+          <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar gastos, ingresos…" style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13.5 }}/>
           {q && <div onClick={() => setQ('')} style={{ cursor: 'pointer' }}><PelasIcon name="x" size={16} color={t.text2}/></div>}
         </div>
       </div>
@@ -1099,6 +1099,74 @@ export const CategoryDetailScreen = ({ theme, cat, onBack, onNavigate }) => {
               {i < txs.length - 1 && <div style={{ height: 1, background: t.border, margin: '2px 0' }}/>}
             </div>
           ))}
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// ── Theme & Style Customization ──────────────────────────────────────────────
+
+export const ThemeStyleScreen = ({ theme, accentColor, setAccentColor, fontFamily, setFontFamily, onBack }) => {
+  const t = T(theme);
+  const colors = [
+    { name: 'Azul', hex: '#0066FF' },
+    { name: 'Morado', hex: '#7C5CFF' },
+    { name: 'Verde', hex: '#3FB984' },
+    { name: 'Naranja', hex: '#FF8A4C' },
+    { name: 'Rojo', hex: '#E16364' },
+  ];
+  const fonts = [
+    { name: 'Poppins', val: "'Poppins', sans-serif" },
+    { name: 'Inter', val: "'Inter', sans-serif" },
+    { name: 'Mono', val: "'JetBrains Mono', monospace" },
+  ];
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Tema y estilo" onBack={onBack} />
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 24px' }}>
+        <SectionTitle theme={theme} title="Color del tema" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 24 }}>
+          {colors.map(c => (
+            <div key={c.hex} onClick={() => setAccentColor(c.hex)} style={{
+              height: 48, borderRadius: 14, background: c.hex,
+              cursor: 'pointer', position: 'relative',
+              border: accentColor === c.hex ? '3px solid #fff' : 'none',
+              boxShadow: accentColor === c.hex ? `0 0 0 2px ${c.hex}` : 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s'
+            }}>
+              {accentColor === c.hex && <PelasIcon name="check" size={20} color="#fff" strokeWidth={3} />}
+            </div>
+          ))}
+        </div>
+
+        <SectionTitle theme={theme} title="Tipografía" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+          {fonts.map(f => (
+            <div key={f.name} onClick={() => setFontFamily(f.val)} style={{
+              padding: '14px 18px', borderRadius: 16, background: t.surface,
+              border: `1px solid ${fontFamily === f.val ? t.accent : t.border}`,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              transition: 'all 0.2s'
+            }}>
+              <div style={{ fontFamily: f.val, fontSize: 15, color: t.text }}>{f.name}</div>
+              {fontFamily === f.val && <div style={{ width: 20, height: 20, borderRadius: 10, background: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="check" size={12} color="#fff" strokeWidth={3} />
+              </div>}
+            </div>
+          ))}
+        </div>
+
+        <SectionTitle theme={theme} title="Vista previa" />
+        <Card theme={theme} padding={20} radius={22}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Balance total</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: t.accent, marginBottom: 16 }}>12.450,00 €</div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <div style={{ flex: 1, height: 44, borderRadius: 22, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 500 }}>Secundario</div>
+            <div style={{ flex: 1, height: 44, borderRadius: 22, background: t.accent, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600 }}>Principal</div>
+          </div>
         </Card>
       </div>
     </div>

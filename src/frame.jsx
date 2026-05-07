@@ -15,7 +15,7 @@ export const PelasFrame = ({ children, theme = 'dark', tabBar, hideStatus = fals
       overflow: 'hidden',
       display: 'flex', flexDirection: 'column',
       position: 'relative',
-      fontFamily: 'Poppins, system-ui, sans-serif',
+      fontFamily: 'inherit',
       color: t.text,
       transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), border-radius 0.4s ease',
     }}>

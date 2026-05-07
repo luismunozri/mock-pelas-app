@@ -5,7 +5,7 @@ import { T } from './theme';
 import { OnboardingScreen, SignInScreen, SignUpScreen } from './screens/auth';
 import { HomeScreen } from './screens/home';
 import { StatsDetailScreen, StatsScreen } from './screens/stats';
-import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen } from './screens/other';
+import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen } from './screens/other';
 import { AddTransactionSheet, InvestmentsScreen } from './screens/extra';
 import { AccountsScreen, AccountDetailScreen } from './screens/accounts';
 import { CardsScreen } from './screens/cards';
@@ -18,9 +18,30 @@ export default function App() {
   const [tab, setTab] = useState('home');
   const [showAddSheet, setShowAddSheet] = useState(false);
 
+  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('pelas-accent') || '#0066FF');
+  const [fontFamily, setFontFamily] = useState(() => localStorage.getItem('pelas-font') || "'Poppins', sans-serif");
+
   useEffect(() => {
     document.body.className = theme === 'light' ? 'theme-light' : '';
   }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('pelas-accent', accentColor);
+    localStorage.setItem('pelas-font', fontFamily);
+
+    const root = document.documentElement;
+    root.style.setProperty('--pelas-accent', accentColor);
+    root.style.setProperty('--pelas-font', fontFamily);
+
+    // Convert hex to RGB
+    let r = 0, g = 0, b = 0;
+    if (accentColor.length === 7) {
+      r = parseInt(accentColor.substring(1, 3), 16);
+      g = parseInt(accentColor.substring(3, 5), 16);
+      b = parseInt(accentColor.substring(5, 7), 16);
+    }
+    root.style.setProperty('--pelas-accent-rgb', `${r}, ${g}, ${b}`);
+  }, [accentColor, fontFamily]);
 
   const navigate = (name, params = {}) => setRoute({ name, ...params });
 
@@ -51,6 +72,7 @@ export default function App() {
     if (route.name === 'notifications')return <NotificationsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
     if (route.name === 'category')     return <CategoryDetailScreen theme={theme} cat={route.cat} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate}/>;
     if (route.name === 'profile')      return <ProfileScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} setTheme={setTheme}/>;
+    if (route.name === 'theme-style')  return <ThemeStyleScreen theme={theme} accentColor={accentColor} setAccentColor={setAccentColor} fontFamily={fontFamily} setFontFamily={setFontFamily} onBack={() => setRoute({ name: 'profile' })}/>;
     if (route.name === 'accounts')        return <AccountsScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} initialFilters={route.filters}/>;
     if (route.name === 'account-detail')  return <AccountDetailScreen theme={theme} account={route.account} onBack={() => setRoute({ name: 'accounts' })}/>;
     if (route.name === 'cards')           return <CardsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;

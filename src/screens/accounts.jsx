@@ -73,7 +73,7 @@ const AccountSheet = ({ theme, initial, onClose, onSave }) => {
       <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '0 14px', height: 50, gap: 10 }}>
         {icon && <PelasIcon name={icon} size={18} color={t.text2}/>}
         <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
       </div>
     </div>
   );
@@ -183,7 +183,7 @@ const AccountSheet = ({ theme, initial, onClose, onSave }) => {
                     <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && addSharedUser()}
                       placeholder="Email del usuario…"
-                      style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 13 }}/>
+                      style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13 }}/>
                   </div>
                   <div onClick={addSharedUser} style={{ width: 48, height: 48, borderRadius: 14, background: form.color, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                     <PelasIcon name="plus" size={20} color="#fff" strokeWidth={2.4}/>
@@ -515,7 +515,7 @@ const BalanceChart = ({ values, xLabels, color, theme }) => {
         return (
           <g key={i}>
             <line x1={YPAD} y1={y} x2={YPAD + W} y2={y} stroke={t.border} strokeWidth={1} strokeDasharray="3 3"/>
-            <text x={YPAD - 6} y={y + 4} textAnchor="end" fontSize="10" fill={t.text2} fontFamily="Poppins, sans-serif">
+            <text x={YPAD - 6} y={y + 4} textAnchor="end" fontSize="10" fill={t.text2} fontFamily="inherit">
               {fmtY(v)} €
             </text>
           </g>
@@ -535,7 +535,7 @@ const BalanceChart = ({ values, xLabels, color, theme }) => {
 
       {/* X labels */}
       {xShow.map(({ l, x }, i) => (
-        <text key={i} x={x} y={H + 16} textAnchor="middle" fontSize="10" fill={t.text2} fontFamily="Poppins, sans-serif">{l}</text>
+        <text key={i} x={x} y={H + 16} textAnchor="middle" fontSize="10" fill={t.text2} fontFamily="inherit">{l}</text>
       ))}
 
       {/* X axis line */}

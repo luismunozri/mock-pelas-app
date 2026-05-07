@@ -605,7 +605,7 @@ const AddCardSheet = ({ theme, onClose, onSave }) => {
       <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 8 }}>
         <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} type={type}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
         {suffix}
       </div>
     </div>
@@ -659,7 +659,7 @@ const AddCardSheet = ({ theme, onClose, onSave }) => {
                     const raw = e.target.value.replace(/\D/g, '').slice(0, 4);
                     set('expiry', raw.length > 2 ? raw.slice(0,2) + '/' + raw.slice(2) : raw);
                   }}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
               </div>
             </div>
             <div style={{ flex: 1 }}>
@@ -667,7 +667,7 @@ const AddCardSheet = ({ theme, onClose, onSave }) => {
               <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 8 }}>
                 <input value={form.cvv} placeholder="•••" maxLength={4} type={showCvv ? 'text' : 'password'}
                   onChange={e => set('cvv', e.target.value.replace(/\D/g, '').slice(0,4))}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 14 }}/>
+                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
                 <div onClick={() => setShowCvv(v => !v)} style={{ cursor: 'pointer' }}>
                   <PelasIcon name={showCvv ? 'eye-off' : 'eye'} size={16} color={t.text2}/>
                 </div>
@@ -693,7 +693,7 @@ const AddCardSheet = ({ theme, onClose, onSave }) => {
 
         {/* Footer */}
         <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
-          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
             Guardar tarjeta
           </button>
         </div>
@@ -771,7 +771,7 @@ const CardDataModal = ({ theme, card, onClose }) => {
 
           {/* Close button */}
           <div style={{ padding: '12px 18px' }}>
-            <button onClick={onClose} style={{ width: '100%', height: 44, borderRadius: 22, border: `1px solid ${t.border}`, background: t.surface2, color: t.text2, fontFamily: 'Poppins', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            <button onClick={onClose} style={{ width: '100%', height: 44, borderRadius: 22, border: `1px solid ${t.border}`, background: t.surface2, color: t.text2, fontFamily: 'inherit', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               Cerrar
             </button>
           </div>
@@ -1058,7 +1058,7 @@ const WidgetSettingsSheet = ({ theme, widgetId, settings, onSave, onClose }) => 
           {renderContent()}
         </div>
         <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
-          <button onClick={() => { onSave(local); onClose(); }} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => { onSave(local); onClose(); }} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
             Guardar
           </button>
         </div>
@@ -1182,7 +1182,7 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
 
         {/* Footer */}
         <div style={{ padding: '14px 22px 22px', flexShrink: 0 }}>
-          <button onClick={onClose} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={onClose} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
             Listo
           </button>
         </div>

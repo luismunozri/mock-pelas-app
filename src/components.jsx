@@ -23,7 +23,7 @@ export const PrimaryButton = ({ children, onClick, full, style, variant = 'prima
     <button onClick={onClick} style={{
       width: full ? '100%' : 'auto',
       height: 56, borderRadius: 28, border: 'none',
-      fontFamily: 'Poppins', fontSize: 15, fontWeight: 500, letterSpacing: 0.2,
+      fontFamily: 'inherit', fontSize: 15, fontWeight: 500, letterSpacing: 0.2,
       cursor: 'pointer', transition: 'transform 0.08s, opacity 0.15s',
       padding: '0 28px',
       ...styles, ...style,
@@ -43,7 +43,7 @@ export const TextField = ({ theme, label, value, onChange, placeholder, type = '
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 16, padding: '0 16px', height: 56 }}>
         {icon && <PelasIcon name={icon} size={20} color={t.text2} />}
         <input type={type} value={value} onChange={e => onChange?.(e.target.value)} placeholder={placeholder}
-          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 15 }} />
+          style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 15 }} />
         {suffix}
       </div>
     </div>

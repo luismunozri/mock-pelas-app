@@ -68,7 +68,7 @@ const StatsWidgetTitle = ({ theme, title, meta, onInfo }) => {
         {meta && <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{meta}</div>}
       </div>
       {onInfo && (
-        <button onClick={onInfo} style={{ flexShrink: 0, border: `1px solid ${t.border}`, background: t.surface, color: t.accent, height: 30, borderRadius: 15, padding: '0 11px', fontFamily: 'Poppins', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={onInfo} style={{ flexShrink: 0, border: `1px solid ${t.border}`, background: t.surface, color: t.accent, height: 30, borderRadius: 15, padding: '0 11px', fontFamily: 'inherit', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
           + Info
         </button>
       )}
@@ -595,7 +595,7 @@ const WidgetCurrenciesDetail = ({ theme, onNavigate }) => {
               </div>
             ))}
 
-            <button onClick={navigateToAccounts} style={{ marginTop: 4, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${selected.color}`, background: selected.color + '16', color: selected.color, fontFamily: 'Poppins', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
+            <button onClick={navigateToAccounts} style={{ marginTop: 4, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${selected.color}`, background: selected.color + '16', color: selected.color, fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
               Ver todas las cuentas
             </button>
           </div>
@@ -1132,7 +1132,7 @@ const WidgetCalendarDetail = ({ theme, onNavigate }) => {
           </div>
         )}
 
-        <button onClick={navigateToHistory} style={{ marginTop: 12, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'Poppins', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+        <button onClick={navigateToHistory} style={{ marginTop: 12, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'inherit', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
           Ver todos los movimientos
         </button>
       </div>
@@ -1619,7 +1619,7 @@ const StatsConfigSheet = ({ theme, widgets, setWidgets, onClose }) => {
           })}
         </div>
         <div style={{ padding: '14px 22px 22px', flexShrink: 0 }}>
-          <button onClick={onClose} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Listo</button>
+          <button onClick={onClose} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Listo</button>
         </div>
       </div>
     </div>
@@ -1654,7 +1654,7 @@ const StatsDetailHeader = ({ theme, title, onBack, onFilter, filtersActive }) =>
 const DetailChipRow = ({ theme, value, options, onChange }) => (
   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
     {options.map(option => (
-      <button key={option.id} onClick={() => onChange(option.id)} style={{ border: 'none', borderRadius: 10, padding: '7px 10px', background: value === option.id ? T(theme).accent : T(theme).surface2, color: value === option.id ? '#fff' : T(theme).text2, fontFamily: 'Poppins', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>
+      <button key={option.id} onClick={() => onChange(option.id)} style={{ border: 'none', borderRadius: 10, padding: '7px 10px', background: value === option.id ? T(theme).accent : T(theme).surface2, color: value === option.id ? '#fff' : T(theme).text2, fontFamily: 'inherit', fontSize: 11.5, fontWeight: 700, cursor: 'pointer' }}>
         {option.label}
       </button>
     ))}
@@ -1805,7 +1805,7 @@ const WidgetBalanceDetail = ({ theme, filters = BALANCE_FILTER_DEFAULT, onNaviga
         )}
 
         {hasMore && (
-          <div onClick={() => onNavigate?.('history')} style={{ marginTop: 10, width: '100%', padding: '12px 0', borderRadius: 16, border: `1px solid ${t.border}`, background: 'transparent', color: t.accent, fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center' }}>
+          <div onClick={() => onNavigate?.('history')} style={{ marginTop: 10, width: '100%', padding: '12px 0', borderRadius: 16, border: `1px solid ${t.border}`, background: 'transparent', color: t.accent, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer', textAlign: 'center' }}>
             Ver todos ({filteredTxs.length} movimientos)
           </div>
         )}
@@ -1994,7 +1994,7 @@ const CombinedFilterDrawer = ({ theme, filters, onApply, onClose }) => {
     return { ...f, categories };
   });
 
-  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'Poppins', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'inherit', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
   const sectionLabel = { fontSize: 10.5, fontWeight: 700, color: t.text3, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 };
   const accounts = [{ id: 'all', name: 'Todas las cuentas', bank: 'Pelas', color: t.accent, icon: 'wallet' }, ...PELAS_ACCOUNTS];
 
@@ -2089,8 +2089,8 @@ const CombinedFilterDrawer = ({ theme, filters, onApply, onClose }) => {
         </div>
 
         <div style={{ padding: '12px 18px 24px', borderTop: `1px solid ${t.border}`, flexShrink: 0, display: 'flex', gap: 8 }}>
-          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Limpiar</button>
-          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Aplicar</button>
+          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Limpiar</button>
+          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Aplicar</button>
         </div>
       </div>
     </div>
@@ -2250,7 +2250,7 @@ const WidgetCombinedDetail = ({ theme, filters = COMBINED_FILTER_DEFAULT, onNavi
                 </div>
               );
             })}
-            <button onClick={navigateToHistory} style={{ marginTop: 4, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${selectedSegment?.color || t.accent}`, background: selectedSegment ? selectedSegment.color + '16' : t.accentSoft, color: selectedSegment?.color || t.accent, fontFamily: 'Poppins', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
+            <button onClick={navigateToHistory} style={{ marginTop: 4, width: '100%', height: 46, borderRadius: 23, border: `1px solid ${selectedSegment?.color || t.accent}`, background: selectedSegment ? selectedSegment.color + '16' : t.accentSoft, color: selectedSegment?.color || t.accent, fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
               Ver todos los movimientos
             </button>
           </div>
@@ -2437,12 +2437,12 @@ const MapPeriodFilter = ({ theme, period, onChangePeriod, customFrom, customTo, 
           <div style={{ flex: 1, padding: '8px 12px', background: t.surface2, borderRadius: 12 }}>
             <div style={{ fontSize: 9.5, color: t.text3, marginBottom: 3 }}>Desde</div>
             <input type="date" value={customFrom} onChange={e => onChangeFrom(e.target.value)}
-              style={{ width: '100%', background: 'transparent', border: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}/>
+              style={{ width: '100%', background: 'transparent', border: 'none', color: t.text, fontFamily: 'inherit', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}/>
           </div>
           <div style={{ flex: 1, padding: '8px 12px', background: t.surface2, borderRadius: 12 }}>
             <div style={{ fontSize: 9.5, color: t.text3, marginBottom: 3 }}>Hasta</div>
             <input type="date" value={customTo} onChange={e => onChangeTo(e.target.value)}
-              style={{ width: '100%', background: 'transparent', border: 'none', color: t.text, fontFamily: 'Poppins', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}/>
+              style={{ width: '100%', background: 'transparent', border: 'none', color: t.text, fontFamily: 'inherit', fontSize: 12, outline: 'none', boxSizing: 'border-box' }}/>
           </div>
         </div>
       )}
@@ -2488,7 +2488,7 @@ const SpainMapSVG = ({ theme, selectedCity, onSelect }) => {
       <div style={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {[{ label: '+', delta: 0.5 }, { label: '−', delta: -0.5 }].map(btn => (
           <button key={btn.label} onClick={() => setZoom(z => Math.min(3, Math.max(1, z + btn.delta)))}
-            style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface + 'DD', color: t.text, fontFamily: 'Poppins', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface + 'DD', color: t.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {btn.label}
           </button>
         ))}
@@ -2578,7 +2578,7 @@ const WidgetNationalHeatmapDetail = ({ theme, onNavigate }) => {
               })}
             </div>
           )}
-          <button onClick={navigateToHistory} style={{ width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'Poppins', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+          <button onClick={navigateToHistory} style={{ width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'inherit', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
             Ver todos los movimientos
           </button>
         </div>
@@ -2631,7 +2631,7 @@ const WorldMapSVG = ({ theme, selectedCountry, onSelect }) => {
       <div style={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {[{ label: '+', delta: 0.5 }, { label: '−', delta: -0.5 }].map(btn => (
           <button key={btn.label} onClick={() => setZoom(z => Math.min(3, Math.max(1, z + btn.delta)))}
-            style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface + 'DD', color: t.text, fontFamily: 'Poppins', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${t.border}`, background: t.surface + 'DD', color: t.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {btn.label}
           </button>
         ))}
@@ -2714,7 +2714,7 @@ const WidgetTravelHeatmapDetail = ({ theme, onNavigate }) => {
               })}
             </div>
           )}
-          <button onClick={navigateToHistory} style={{ width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'Poppins', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
+          <button onClick={navigateToHistory} style={{ width: '100%', height: 46, borderRadius: 23, border: `1px solid ${t.negative}`, background: t.negative + '16', color: t.negative, fontFamily: 'inherit', fontSize: 13, fontWeight: 900, cursor: 'pointer' }}>
             Ver todos los movimientos
           </button>
         </div>
@@ -2758,7 +2758,7 @@ const EvolutionFilterDrawer = ({ theme, filters, onApply, onClose }) => {
   const reset  = () => setLocal(EVOLUTION_FILTER_DEFAULT);
   const apply  = () => { onApply(local); onClose(); };
 
-  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'Poppins', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'inherit', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
   const sectionLabel = { fontSize: 10.5, fontWeight: 700, color: t.text3, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 };
 
   const accounts = [{ id: 'all', name: 'Todas las cuentas', color: t.accent }, ...PELAS_ACCOUNTS];
@@ -2826,8 +2826,8 @@ const EvolutionFilterDrawer = ({ theme, filters, onApply, onClose }) => {
         </div>
 
         <div style={{ padding: '12px 18px 24px', borderTop: `1px solid ${t.border}`, flexShrink: 0, display: 'flex', gap: 8 }}>
-          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Limpiar</button>
-          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Aplicar</button>
+          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Limpiar</button>
+          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Aplicar</button>
         </div>
       </div>
     </div>
@@ -2875,7 +2875,7 @@ const BalanceFilterDrawer = ({ theme, filters, onApply, onClose }) => {
   const reset = () => setLocal(BALANCE_FILTER_DEFAULT);
   const apply = () => { onApply(local); onClose(); };
 
-  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'Poppins', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
+  const inputStyle = { width: '100%', padding: '9px 12px', borderRadius: 10, border: `1px solid ${t.border}`, background: t.surface2, color: t.text, fontFamily: 'inherit', fontSize: 12, outline: 'none', boxSizing: 'border-box' };
   const sectionLabel = { fontSize: 10.5, fontWeight: 700, color: t.text3, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 };
   const rowStyle = { display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, marginBottom: 6 };
 
@@ -2961,10 +2961,10 @@ const BalanceFilterDrawer = ({ theme, filters, onApply, onClose }) => {
 
         {/* Footer */}
         <div style={{ padding: '12px 18px 24px', borderTop: `1px solid ${t.border}`, flexShrink: 0, display: 'flex', gap: 8 }}>
-          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={reset} style={{ flex: 1, height: 46, borderRadius: 23, border: `1px solid ${t.border}`, background: 'transparent', color: t.text2, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Limpiar
           </button>
-          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'Poppins', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={apply} style={{ flex: 2, height: 46, borderRadius: 23, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Aplicar
           </button>
         </div>
