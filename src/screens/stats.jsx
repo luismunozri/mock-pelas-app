@@ -2595,35 +2595,28 @@ const WorldMapSVG = ({ theme, selectedCountry, onSelect }) => {
   const mapFill = theme === 'dark' ? '#2A2C3D' : '#DCE5F5';
   const mapStroke = theme === 'dark' ? '#4A4C62' : '#B0BEDD';
   const seaFill = theme === 'dark' ? '#1A1B2A' : '#EDF1FA';
+  const maxAmt = Math.max(...TRAVEL_COUNTRIES.map(c => c.amount));
 
   return (
     <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', background: seaFill }}
       onWheel={e => { e.preventDefault(); setZoom(z => Math.min(3, Math.max(1, z - e.deltaY * 0.002))); }}>
-      <svg viewBox="0 0 400 220" width="100%"
+      <svg viewBox="0 0 800 400" width="100%"
         style={{ display: 'block', transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.15s' }}>
-        <rect x="0" y="0" width="400" height="220" fill={seaFill}/>
-        {[25,35,45].map(lat => <path key={`lat-${lat}`} d={`M0 ${(55-lat)*5.5} H400`} stroke={mapStroke} strokeWidth="0.4" strokeOpacity="0.5"/>)}
-        {[0,40,80,120,160].map(lon => <path key={`lon-${lon}`} d={`M${(lon+20)*2.222} 0 V220`} stroke={mapStroke} strokeWidth="0.4" strokeOpacity="0.5"/>)}
-        {/* W+C Europe */}
-        <path d="M23 0 L122 0 L122 105 L107 105 L89 99 L80 99 L78 102 L62 94 L51 66 L44 94 L32 105 L24 99 Z" fill={mapFill} stroke={mapStroke} strokeWidth="0.8" strokeLinejoin="round"/>
-        {/* Russia / N.Asia */}
-        <path d="M122 0 L400 0 L400 90 L280 85 L200 85 L140 90 L122 0 Z" fill={mapFill} stroke={mapStroke} strokeWidth="0.8" strokeLinejoin="round"/>
-        {/* Africa */}
-        <path d="M32 105 L100 105 L130 115 L128 220 L0 220 L0 155 L16 149 L25 149 L33 121 L42 116 Z" fill={mapFill} stroke={mapStroke} strokeWidth="0.8" strokeLinejoin="round"/>
-        {/* Middle East (fills gap) */}
-        <path d="M122 105 L140 90 L148 130 L130 135 L100 105 Z" fill={mapFill} stroke={mapStroke} strokeWidth="0.8" strokeLinejoin="round"/>
-        {/* S+E Asia / China */}
-        <path d="M140 90 L400 90 L400 220 L165 220 L148 165 L148 130 L140 90 Z" fill={mapFill} stroke={mapStroke} strokeWidth="0.8" strokeLinejoin="round"/>
-        {/* Visited countries (interactive) */}
+        <rect x="0" y="0" width="800" height="400" fill={seaFill}/>
+        {WORLD_MAP_PATHS.map((d, i) => (
+          <path key={i} d={d} fill={mapFill} stroke={mapStroke} strokeWidth="1.2" strokeLinejoin="round"/>
+        ))}
         {TRAVEL_COUNTRIES.map(country => {
           const isSelected = selectedCountry?.country === country.country;
+          const intensity = country.amount / maxAmt;
+          const outerR = 14 + intensity * 22;
+          const innerR = 6 + intensity * 10;
           return (
             <g key={country.country} onClick={() => onSelect(isSelected ? null : country)} style={{ cursor: 'pointer' }}>
-              <circle cx={country.x} cy={country.y} r="22" fill="transparent"/>
-              {isSelected && <circle cx={country.x} cy={country.y} r="14" fill={country.color} fillOpacity="0.2"/>}
-              <path d={country.d} fill={country.color} fillOpacity={isSelected ? '1' : '0.82'} stroke="#fff" strokeWidth={isSelected ? '1.8' : '0.8'}/>
-              <circle cx={country.x} cy={country.y} r={isSelected ? '4.5' : '3'} fill="#fff" fillOpacity="0.95"/>
-              <text x={country.x + 6} y={country.y - 5} fontSize="8.5" fill={isSelected ? country.color : t.text2} fontWeight={isSelected ? '800' : '700'}>{country.country}</text>
+              <circle cx={country.x} cy={country.y} r={outerR} fill={country.color} fillOpacity={isSelected ? '0.35' : '0.18'}/>
+              <circle cx={country.x} cy={country.y} r={innerR} fill={country.color} fillOpacity={isSelected ? '0.7' : '0.45'}/>
+              <circle cx={country.x} cy={country.y} r="8" fill={country.color} stroke="#fff" strokeWidth={isSelected ? '3.2' : '2.4'}/>
+              <text x={country.x + 11} y={country.y - 9} fontSize="14" fill={t.text2} fontWeight="700">{country.country}</text>
             </g>
           );
         })}
@@ -2652,6 +2645,8 @@ const WidgetTravelHeatmapDetail = ({ theme, onNavigate }) => {
   const periodFiltered = filterTxByMapPeriod(expenseTxs, period, customFrom, customTo);
   const countryTxs = selectedCountry ? periodFiltered.filter(tx => tx.location?.includes(selectedCountry.country)) : [];
   const countryTotal = countryTxs.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+  const travelTrips = TRAVEL_COUNTRIES.reduce((sum, c) => sum + c.trips, 0);
+  const travelTotal = TRAVEL_COUNTRIES.reduce((sum, c) => sum + c.amount, 0);
 
   const navigateToHistory = () => {
     if (!selectedCountry) return;
@@ -2664,18 +2659,19 @@ const WidgetTravelHeatmapDetail = ({ theme, onNavigate }) => {
       <MapPeriodFilter theme={theme} period={period} onChangePeriod={setPeriod}
         customFrom={customFrom} customTo={customTo} onChangeFrom={setCustomFrom} onChangeTo={setCustomTo}/>
       <Card theme={theme} padding={12} radius={22} style={{ marginBottom: 14 }}>
-        <WorldMapSVG theme={theme} selectedCountry={selectedCountry} onSelect={setSelectedCountry}/>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-          {TRAVEL_COUNTRIES.map(country => {
-            const active = selectedCountry?.country === country.country;
-            return (
-              <div key={country.country} onClick={() => setSelectedCountry(active ? null : country)}
-                style={{ padding: '5px 11px', borderRadius: 10, background: active ? country.color : country.color + '18', color: active ? '#fff' : country.color, fontSize: 11, fontWeight: 700, cursor: 'pointer', border: `1px solid ${country.color}40` }}>
-                {country.country} · {country.trips}v
-              </div>
-            );
-          })}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+          {[
+            { label: 'Viajes', value: travelTrips },
+            { label: 'Países', value: TRAVEL_COUNTRIES.length },
+            { label: 'Gasto total', value: `${(travelTotal / 1000).toFixed(1).replace('.', ',')}k €` },
+          ].map(item => (
+            <div key={item.label} style={{ padding: '9px 8px', borderRadius: 12, background: t.surface2, textAlign: 'center' }}>
+              <div style={{ fontSize: 10, color: t.text2, marginBottom: 2 }}>{item.label}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{item.value}</div>
+            </div>
+          ))}
         </div>
+        <WorldMapSVG theme={theme} selectedCountry={selectedCountry} onSelect={setSelectedCountry}/>
       </Card>
 
       {!selectedCountry ? (
