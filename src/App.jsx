@@ -1,18 +1,28 @@
 import { useState, useEffect } from 'react';
-import { PelasFrame, PelasTabBar } from './frame';
+import { PelasFrame, PelasTabBar, PelasTabSidebar } from './frame';
 import { PelasIcon } from './icons';
 import { T } from './theme';
 import { OnboardingScreen, SignInScreen, SignUpScreen } from './screens/auth';
 import { HomeScreen } from './screens/home';
 import { StatsDetailScreen, StatsScreen } from './screens/stats';
-import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen, PersonalDataScreen, SecurityScreen, ProfileCategoriesScreen, NotificationSettingsScreen, LanguageScreen } from './screens/other';
+import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen, PersonalDataScreen, SecurityScreen, ProfileCategoriesScreen, NotificationSettingsScreen, LanguageScreen, ExportDataScreen, ImportDataScreen, CloudBackupScreen, FamilyGroupScreen } from './screens/other';
 import { AddTransactionSheet, InvestmentsScreen } from './screens/extra';
 import { AccountsScreen, AccountDetailScreen } from './screens/accounts';
 import { CardsScreen } from './screens/cards';
 
 export default function App() {
   const [theme, setTheme] = useState('dark');
+  const [deviceMode, setDeviceMode] = useState('phone');
   const [route, setRoute] = useState({ name: 'onboarding', step: 0 });
+  const [familyGroup, setFamilyGroup] = useState({
+    group: { name: 'Familia Bayón' },
+    members: [
+      { id: 'u0',  name: 'Marta Bayón',  email: 'marta.bayon@correo.es',  role: 'admin',  status: 'active',  color: '#0066FF' },
+      { id: 'u1',  name: 'Carlos Bayón', email: 'carlos.bayon@correo.es', role: 'member', status: 'active',  color: '#7C5CFF' },
+      { id: 'u2',  name: 'Ana Bayón',    email: 'ana.bayon@correo.es',    role: 'member', status: 'active',  color: '#3FB984' },
+      { id: 'u3',  name: 'Luis Bayón',   email: 'luis.bayon@correo.es',   role: 'member', status: 'pending', color: '#FF8A4C' },
+    ],
+  });
   const [tab, setTab] = useState('home');
   const [showAddSheet, setShowAddSheet] = useState(false);
 
@@ -76,21 +86,26 @@ export default function App() {
     if (route.name === 'profile-categories')    return <ProfileCategoriesScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
     if (route.name === 'notification-settings') return <NotificationSettingsScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
     if (route.name === 'language')              return <LanguageScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
-    if (route.name === 'accounts')        return <AccountsScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} initialFilters={route.filters}/>;
+    if (route.name === 'family-group')          return <FamilyGroupScreen theme={theme} onBack={() => setRoute({ name: 'profile' })} familyGroup={familyGroup} setFamilyGroup={setFamilyGroup}/>;
+    if (route.name === 'export-data')           return <ExportDataScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'import-data')           return <ImportDataScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'cloud-backup')          return <CloudBackupScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'accounts')        return <AccountsScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} initialFilters={route.filters} familyGroup={familyGroup}/>;
     if (route.name === 'account-detail')  return <AccountDetailScreen theme={theme} account={route.account} onBack={() => setRoute({ name: 'accounts' })}/>;
     if (route.name === 'cards')           return <CardsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
     if (route.name === 'stats-detail')    return <StatsDetailScreen theme={theme} widgetId={route.widgetId} onBack={() => { setTab('stats'); setRoute({ name: 'main' }); }} onNavigate={navigate}/>;
 
 
-    if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate}/>;
-    if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate}/>;
+    if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} familyGroup={familyGroup}/>;
+    if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'}/>;
     if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')}/>;
     if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate}/>;
     return null;
   };
 
   const inMain = route.name === 'main' && ['home','stats','tx','invest'].includes(tab);
-  const isLandscape = route.name === 'stats-detail' && route.widgetId === 'stats-evolution';
+  const isTablet = deviceMode === 'tablet';
+  const isLandscape = !isTablet && route.name === 'stats-detail' && route.widgetId === 'stats-evolution';
 
   return (
     <div style={{
@@ -109,7 +124,13 @@ export default function App() {
         <div style={{ fontSize: 12, color: '#7E848D', marginTop: 4 }}>Tu app de finanzas personales · prototipo navegable</div>
       </div>
 
-      <PelasFrame theme={theme} tabBar={inMain ? <PelasTabBar theme={theme} active={tab} onChange={handleTabChange}/> : null} landscape={isLandscape}>
+      <PelasFrame
+        theme={theme}
+        tablet={isTablet}
+        landscape={isLandscape}
+        tabBar={!isTablet && inMain ? <PelasTabBar theme={theme} active={tab} onChange={handleTabChange}/> : null}
+        sidebar={isTablet && inMain ? <PelasTabSidebar theme={theme} active={tab} onChange={handleTabChange}/> : null}
+      >
         {renderScreen()}
         {showAddSheet && <AddTransactionSheet theme={theme} onClose={() => setShowAddSheet(false)}/>}
       </PelasFrame>
@@ -150,6 +171,12 @@ export default function App() {
           <span style={{ fontSize: 12, color: t.text }}>Tema:</span>
           {['dark','light'].map(v => (
             <div key={v} onClick={() => setTheme(v)} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: theme === v ? t.accent : t.surface2, color: theme === v ? '#fff' : t.text2, fontWeight: theme === v ? 600 : 400 }}>{v}</div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: t.text }}>Dispositivo:</span>
+          {[{ id: 'phone', label: '📱 Móvil' }, { id: 'tablet', label: '⬛ Tablet' }].map(v => (
+            <div key={v.id} onClick={() => setDeviceMode(v.id)} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: deviceMode === v.id ? t.accent : t.surface2, color: deviceMode === v.id ? '#fff' : t.text2, fontWeight: deviceMode === v.id ? 600 : 400 }}>{v.label}</div>
           ))}
         </div>
       </div>

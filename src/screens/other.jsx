@@ -491,6 +491,20 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
         { icon: 'globe', label: 'Idioma', sub: 'Español (España)', onClick: () => onNavigate('language') },
       ],
     },
+    {
+      title: 'Familia',
+      items: [
+        { icon: 'people', label: 'Grupo familiar', sub: 'Comparte gastos con tu familia', onClick: () => onNavigate('family-group') },
+      ],
+    },
+    {
+      title: 'Datos',
+      items: [
+        { icon: 'arrow-up', label: 'Exportar base de datos', sub: 'CSV, JSON o Excel', onClick: () => onNavigate('export-data') },
+        { icon: 'arrow-down', label: 'Importar base de datos', sub: 'Con archivo plantilla', onClick: () => onNavigate('import-data') },
+        { icon: 'shield', label: 'Backup en la nube', sub: 'iCloud, Google Drive, OneDrive', onClick: () => onNavigate('cloud-backup') },
+      ],
+    },
   ];
   return (
     <div style={{ padding: '8px 22px 24px' }}>
@@ -1911,6 +1925,729 @@ export const LanguageScreen = ({ theme, onBack }) => {
           </div>
         </Card>
       </div>
+    </div>
+  );
+};
+
+// ── Family Group ──────────────────────────────────────────────────────────────
+
+const MEMBER_COLORS = ['#0066FF','#7C5CFF','#3FB984','#FF8A4C','#E16364','#FFC234','#5B8DEF'];
+const getInitials = (name) => name.trim().split(/\s+/).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+const CreateGroupSheet = ({ theme, onSave, onClose }) => {
+  const t = T(theme);
+  const [name, setName] = useState('');
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '14px 22px 32px', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 20px' }}/>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 22 }}>
+          <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>Nuevo grupo familiar</div>
+          <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <PelasIcon name="x" size={15} color={t.text2}/>
+          </div>
+        </div>
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>NOMBRE DEL GRUPO</div>
+          <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 50, gap: 10 }}>
+            <PelasIcon name="people" size={16} color={t.text2}/>
+            <input
+              autoFocus
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="p. ej. Familia Bayón"
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}
+            />
+          </div>
+          <div style={{ fontSize: 11, color: t.text3, marginTop: 6 }}>Podrás invitar a los miembros una vez creado el grupo.</div>
+        </div>
+        <button
+          onClick={() => { if (name.trim()) onSave(name.trim()); }}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: name.trim() ? t.accent : t.surface2, color: name.trim() ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+        >
+          Crear grupo
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const InviteMemberSheet = ({ theme, onInvite, onClose }) => {
+  const t = T(theme);
+  const [form, setForm] = useState({ name: '', email: '', role: 'member' });
+  const set = (k, v) => setForm(s => ({ ...s, [k]: v }));
+  const valid = form.name.trim() && form.email.includes('@');
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '14px 22px 32px', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 20px' }}/>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 22 }}>
+          <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>Invitar miembro</div>
+          <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <PelasIcon name="x" size={15} color={t.text2}/>
+          </div>
+        </div>
+
+        {[{ label: 'NOMBRE COMPLETO', key: 'name', icon: 'user', placeholder: 'Nombre del familiar' }, { label: 'EMAIL', key: 'email', icon: 'mail', placeholder: 'correo@ejemplo.com' }].map(f => (
+          <div key={f.key} style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>{f.label}</div>
+            <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 50, gap: 10 }}>
+              <PelasIcon name={f.icon} size={16} color={t.text2}/>
+              <input
+                value={form[f.key]}
+                onChange={e => set(f.key, e.target.value)}
+                placeholder={f.placeholder}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}
+              />
+            </div>
+          </div>
+        ))}
+
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 8 }}>ROL</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[{ id: 'member', label: 'Miembro' }, { id: 'admin', label: 'Administrador' }].map(r => (
+              <div key={r.id} onClick={() => set('role', r.id)}
+                style={{ flex: 1, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: form.role === r.id ? t.accent : t.surface2, color: form.role === r.id ? '#fff' : t.text2, transition: 'all 0.15s' }}>
+                {r.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={() => { if (valid) onInvite(form); }}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: valid ? t.accent : t.surface2, color: valid ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+        >
+          Enviar invitación
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const EditGroupNameSheet = ({ theme, current, onSave, onClose }) => {
+  const t = T(theme);
+  const [name, setName] = useState(current);
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '14px 22px 32px', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 20px' }}/>
+        <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 18 }}>Editar nombre del grupo</div>
+        <div style={{ marginBottom: 22 }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 50, gap: 10 }}>
+            <PelasIcon name="edit" size={16} color={t.text2}/>
+            <input autoFocus value={name} onChange={e => setName(e.target.value)}
+              style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
+          </div>
+        </div>
+        <button onClick={() => { if (name.trim()) onSave(name.trim()); }}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: name.trim() ? t.accent : t.surface2, color: name.trim() ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+          Guardar
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const FAMILY_ADMIN = { id: 'u0', name: 'Marta Bayón', email: 'marta.bayon@correo.es', role: 'admin', status: 'active' };
+
+export const FamilyGroupScreen = ({ theme, onBack, familyGroup, setFamilyGroup }) => {
+  const t = T(theme);
+  const { group, members } = familyGroup;
+
+  const [showCreate, setShowCreate] = useState(false);
+  const [showInvite, setShowInvite] = useState(false);
+  const [showEditName, setShowEditName] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const handleCreateGroup = (name) => {
+    setFamilyGroup(prev => ({ ...prev, group: { name } }));
+    setShowCreate(false);
+  };
+
+  const handleInvite = (form) => {
+    const colorIdx = members.length % MEMBER_COLORS.length;
+    setFamilyGroup(prev => ({
+      ...prev,
+      members: [...prev.members, {
+        id: 'm' + Date.now(),
+        name: form.name.trim(),
+        email: form.email.trim(),
+        role: form.role,
+        status: 'pending',
+        color: MEMBER_COLORS[colorIdx],
+      }],
+    }));
+    setShowInvite(false);
+  };
+
+  const handleRemove = (id) => {
+    setFamilyGroup(prev => ({ ...prev, members: prev.members.filter(m => m.id !== id) }));
+    setConfirmDelete(null);
+  };
+
+  const handleDeleteGroup = () => {
+    setFamilyGroup({ group: null, members: [FAMILY_ADMIN] });
+  };
+
+  // ── No group ──
+  if (!group) return (
+    <div style={{ position: 'relative', height: '100%' }}>
+      <PelasHeader theme={theme} title="Grupo familiar" onBack={onBack}/>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 32px', height: 'calc(100% - 60px)' }}>
+        <div style={{ width: 80, height: 80, borderRadius: 26, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+          <PelasIcon name="people" size={36} color={t.accent}/>
+        </div>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 10, textAlign: 'center' }}>Sin grupo familiar</div>
+        <div style={{ fontSize: 13, color: t.text2, textAlign: 'center', lineHeight: 1.6, marginBottom: 32, maxWidth: 260 }}>
+          Crea un grupo para compartir gastos, presupuestos y metas con tu familia.
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+        >
+          <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.5}/>
+          Crear grupo familiar
+        </button>
+      </div>
+      {showCreate && <CreateGroupSheet theme={theme} onSave={handleCreateGroup} onClose={() => setShowCreate(false)}/>}
+    </div>
+  );
+
+  // ── Has group ──
+  const activeCount  = members.filter(m => m.status === 'active').length;
+  const pendingCount = members.filter(m => m.status === 'pending').length;
+
+  return (
+    <div style={{ position: 'relative', height: '100%' }}>
+      <div style={{ overflowY: 'auto', height: '100%' }}>
+        <PelasHeader
+          theme={theme}
+          title="Grupo familiar"
+          onBack={onBack}
+          action={
+            <div onClick={() => setShowInvite(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 13px', borderRadius: 20, background: t.accentSoft, cursor: 'pointer' }}>
+              <PelasIcon name="plus" size={13} color={t.accent} strokeWidth={2.5}/>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: t.accent }}>Invitar</span>
+            </div>
+          }
+        />
+
+        <div style={{ padding: '0 22px 32px' }}>
+          {/* Group header card */}
+          <Card theme={theme} padding={18} radius={22} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 18, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name="people" size={24} color={t.accent}/>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{group.name}</div>
+                <div style={{ fontSize: 12, color: t.text2, marginTop: 3 }}>
+                  {activeCount} activo{activeCount !== 1 ? 's' : ''}{pendingCount > 0 ? ` · ${pendingCount} pendiente${pendingCount !== 1 ? 's' : ''}` : ''}
+                </div>
+              </div>
+              <div onClick={() => setShowEditName(true)} style={{ width: 32, height: 32, borderRadius: 10, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <PelasIcon name="edit" size={14} color={t.text2}/>
+              </div>
+            </div>
+            {/* Avatars preview */}
+            <div style={{ display: 'flex', marginTop: 14, alignItems: 'center', gap: 4 }}>
+              {members.slice(0, 5).map((m, i) => (
+                <div key={m.id} style={{ width: 32, height: 32, borderRadius: 16, background: m.color || t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10.5, fontWeight: 700, border: `2px solid ${t.surface}`, marginLeft: i > 0 ? -8 : 0, zIndex: members.length - i, flexShrink: 0 }}>
+                  {getInitials(m.name)}
+                </div>
+              ))}
+              {members.length > 5 && (
+                <div style={{ marginLeft: 4, fontSize: 11, color: t.text2 }}>+{members.length - 5} más</div>
+              )}
+            </div>
+          </Card>
+
+          {/* Members list */}
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 2 }}>
+            Miembros ({members.length})
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 }}>
+            {members.map(m => {
+              const avatarColor = m.id === 'u0' ? 'linear-gradient(135deg,#0066FF,#7C5CFF)' : m.color;
+              return (
+                <Card key={m.id} theme={theme} padding={14} radius={16}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {/* Avatar */}
+                    <div style={{ width: 44, height: 44, borderRadius: 14, background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                      {getInitials(m.name)}
+                    </div>
+
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
+                        {m.role === 'admin' && (
+                          <div style={{ flexShrink: 0, fontSize: 9.5, fontWeight: 700, color: t.accent, background: t.accentSoft, padding: '2px 6px', borderRadius: 6, letterSpacing: 0.3 }}>ADMIN</div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11.5, color: t.text2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.email}</div>
+                    </div>
+
+                    {/* Status + delete */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 600, padding: '3px 8px', borderRadius: 8, background: m.status === 'active' ? 'rgba(63,185,132,0.15)' : 'rgba(255,194,52,0.15)', color: m.status === 'active' ? t.positive : '#FFC234' }}>
+                        {m.status === 'active' ? 'Activo' : 'Pendiente'}
+                      </div>
+                      {m.id !== 'u0' && (
+                        <div onClick={() => setConfirmDelete(m.id)} style={{ width: 26, height: 26, borderRadius: 8, background: 'rgba(225,99,100,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                          <PelasIcon name="x" size={12} color={t.negative}/>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Confirm delete inline */}
+                  {confirmDelete === m.id && (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ flex: 1, fontSize: 12, color: t.text2 }}>¿Eliminar a {m.name} del grupo?</div>
+                      <div onClick={() => setConfirmDelete(null)} style={{ padding: '6px 12px', borderRadius: 10, background: t.surface2, fontSize: 12, fontWeight: 600, cursor: 'pointer', color: t.text2 }}>Cancelar</div>
+                      <div onClick={() => handleRemove(m.id)} style={{ padding: '6px 12px', borderRadius: 10, background: 'rgba(225,99,100,0.12)', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: t.negative }}>Eliminar</div>
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Danger zone */}
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 2 }}>Zona de peligro</div>
+          <Card theme={theme} padding={6} radius={16}>
+            <div onClick={handleDeleteGroup} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 10px', cursor: 'pointer' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(225,99,100,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="x" size={16} color={t.negative}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500, color: t.negative }}>Disolver grupo familiar</div>
+                <div style={{ fontSize: 11, color: t.text2 }}>Elimina el grupo y desvincula a todos los miembros</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {showCreate   && <CreateGroupSheet theme={theme} onSave={handleCreateGroup} onClose={() => setShowCreate(false)}/>}
+      {showInvite   && <InviteMemberSheet theme={theme} onInvite={handleInvite} onClose={() => setShowInvite(false)}/>}
+      {showEditName && <EditGroupNameSheet theme={theme} current={group.name} onSave={n => { setFamilyGroup(prev => ({ ...prev, group: { name: n } })); setShowEditName(false); }} onClose={() => setShowEditName(false)}/>}
+    </div>
+  );
+};
+
+// ── Export Data ───────────────────────────────────────────────────────────────
+
+const EXPORT_FORMATS = [
+  { id: 'csv',  label: 'CSV',   sub: 'Compatible con Excel y Google Sheets' },
+  { id: 'json', label: 'JSON',  sub: 'Para desarrolladores e integraciones' },
+  { id: 'xlsx', label: 'Excel', sub: 'Archivo .xlsx nativo de Microsoft' },
+];
+const EXPORT_RANGES = [
+  { id: 'all', label: 'Todos los datos' },
+  { id: '3m',  label: 'Últimos 3 meses' },
+  { id: '1y',  label: 'Último año' },
+  { id: '2026',label: 'Año 2026' },
+];
+const EXPORT_INCLUDES = [
+  { key: 'transactions', label: 'Transacciones', sub: '127 registros' },
+  { key: 'accounts',     label: 'Cuentas',        sub: '4 cuentas' },
+  { key: 'budgets',      label: 'Presupuestos',   sub: '4 presupuestos' },
+  { key: 'goals',        label: 'Metas',          sub: '3 metas' },
+  { key: 'categories',   label: 'Categorías',     sub: '8 categorías' },
+];
+
+export const ExportDataScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [format, setFormat]   = useState('csv');
+  const [range, setRange]     = useState('all');
+  const [includes, setIncludes] = useState({ transactions: true, accounts: true, budgets: true, goals: true, categories: true });
+  const [done, setDone]       = useState(false);
+  const toggle = (k) => setIncludes(s => ({ ...s, [k]: !s[k] }));
+
+  if (done) return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Exportar datos" onBack={onBack}/>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', gap: 16 }}>
+        <div style={{ width: 72, height: 72, borderRadius: 24, background: 'rgba(63,185,132,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <PelasIcon name="check" size={36} color={t.positive} strokeWidth={2.2}/>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Exportación completada</div>
+          <div style={{ fontSize: 13, color: t.text2, lineHeight: 1.5 }}>
+            Archivo <span style={{ fontWeight: 600, color: t.text }}>pelas_datos_{new Date().toISOString().slice(0,10)}.{format}</span> listo
+          </div>
+        </div>
+        <Card theme={theme} padding={16} radius={16} style={{ width: '100%' }}>
+          {[['Formato', format.toUpperCase()], ['Registros', '147'], ['Tamaño', '~24 KB']].map(([l, v]) => (
+            <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: t.text2, marginBottom: 8, '&:last-child': { marginBottom: 0 } }}>
+              <span>{l}</span><span style={{ fontWeight: 600, color: t.text }}>{v}</span>
+            </div>
+          ))}
+        </Card>
+        <button onClick={() => setDone(false)} style={{ width: '100%', height: 50, borderRadius: 25, border: `1px solid ${t.border}`, background: 'transparent', color: t.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          Nueva exportación
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Exportar datos" onBack={onBack}/>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+
+        {/* Formato */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Formato</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {EXPORT_FORMATS.map(f => {
+              const sel = format === f.id;
+              return (
+                <div key={f.id} onClick={() => setFormat(f.id)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', borderRadius: 14, cursor: 'pointer', background: sel ? t.accent + '14' : t.surface2, border: `1.5px solid ${sel ? t.accent : 'transparent'}`, transition: 'all 0.15s' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 11, background: sel ? t.accent : t.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: sel ? '#fff' : t.text2 }}>{f.id.toUpperCase()}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: sel ? 600 : 400, color: sel ? t.accent : t.text }}>{f.label}</div>
+                    <div style={{ fontSize: 11, color: t.text2, marginTop: 1 }}>{f.sub}</div>
+                  </div>
+                  <div style={{ width: 20, height: 20, borderRadius: 10, background: sel ? t.accent : 'transparent', border: `1.5px solid ${sel ? t.accent : t.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    {sel && <PelasIcon name="check" size={11} color="#fff" strokeWidth={3}/>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Periodo */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Periodo</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {EXPORT_RANGES.map(r => (
+              <div key={r.id} onClick={() => setRange(r.id)} style={{ padding: '8px 14px', borderRadius: 100, fontSize: 12, fontWeight: 500, cursor: 'pointer', background: range === r.id ? t.accent : t.surface2, color: range === r.id ? '#fff' : t.text2, transition: 'all 0.15s' }}>
+                {r.label}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Incluir */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Incluir</div>
+          <Card theme={theme} padding={6} radius={16}>
+            {EXPORT_INCLUDES.map((item, i) => {
+              const on = includes[item.key];
+              return (
+                <div key={item.key} onClick={() => toggle(item.key)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 10px', borderBottom: i < EXPORT_INCLUDES.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, color: on ? t.text : t.text2 }}>{item.label}</div>
+                    <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{item.sub}</div>
+                  </div>
+                  <div style={{ width: 22, height: 22, borderRadius: 7, background: on ? t.accent : 'transparent', border: `1.5px solid ${on ? t.accent : t.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                    {on && <PelasIcon name="check" size={12} color="#fff" strokeWidth={3}/>}
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
+        </div>
+      </div>
+      <div style={{ padding: '12px 22px 28px', flexShrink: 0 }}>
+        <button onClick={() => setDone(true)} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <PelasIcon name="arrow-up" size={16} color="#fff" strokeWidth={2.4}/>
+          Exportar
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ── Import Data ────────────────────────────────────────────────────────────────
+
+export const ImportDataScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [templateFormat, setTemplateFormat] = useState('csv');
+  const [phase, setPhase]   = useState('idle'); // idle | importing | done
+  const [progress, setProgress] = useState(0);
+  const [fileName, setFileName] = useState(null);
+
+  const pickFile = () => {
+    setFileName('mis_datos_banco.csv');
+  };
+
+  const startImport = () => {
+    setPhase('importing');
+    setProgress(0);
+    let p = 0;
+    const iv = setInterval(() => {
+      p += Math.random() * 22 + 8;
+      if (p >= 100) {
+        setProgress(100);
+        clearInterval(iv);
+        setTimeout(() => setPhase('done'), 350);
+      } else {
+        setProgress(p);
+      }
+    }, 280);
+  };
+
+  if (phase === 'done') return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Importar datos" onBack={onBack}/>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', gap: 16 }}>
+        <div style={{ width: 72, height: 72, borderRadius: 24, background: 'rgba(63,185,132,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <PelasIcon name="check" size={36} color={t.positive} strokeWidth={2.2}/>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Importación completada</div>
+          <div style={{ fontSize: 13, color: t.text2 }}>Tus datos han sido importados correctamente</div>
+        </div>
+        <Card theme={theme} padding={16} radius={16} style={{ width: '100%' }}>
+          {[['Transacciones importadas', '+89', t.positive], ['Categorías actualizadas', '6', t.accent], ['Duplicados omitidos', '3', t.text3]].map(([l, v, c]) => (
+            <div key={l} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: t.text2, marginBottom: 8 }}>
+              <span>{l}</span><span style={{ fontWeight: 600, color: c }}>{v}</span>
+            </div>
+          ))}
+        </Card>
+        <button onClick={() => { setPhase('idle'); setFileName(null); }} style={{ width: '100%', height: 50, borderRadius: 25, border: `1px solid ${t.border}`, background: 'transparent', color: t.text, fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          Nueva importación
+        </button>
+      </div>
+    </div>
+  );
+
+  if (phase === 'importing') return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Importar datos" onBack={() => {}}/>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 32px', gap: 20 }}>
+        <div style={{ width: 72, height: 72, borderRadius: 24, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <PelasIcon name="refresh" size={32} color={t.accent} strokeWidth={1.8}/>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Importando datos…</div>
+          <div style={{ fontSize: 12, color: t.text2 }}>No cierres la aplicación</div>
+        </div>
+        <div style={{ width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: t.text2, marginBottom: 6 }}>
+            <span>Procesando registros</span><span style={{ fontWeight: 600 }}>{Math.round(progress)}%</span>
+          </div>
+          <div style={{ width: '100%', height: 8, borderRadius: 4, background: t.surface2, overflow: 'hidden' }}>
+            <div style={{ width: `${progress}%`, height: '100%', background: t.accent, borderRadius: 4, transition: 'width 0.28s ease' }}/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Importar datos" onBack={onBack}/>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+
+        {/* Plantilla */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>Plantilla oficial</div>
+          <div style={{ fontSize: 12, color: t.text2, marginBottom: 12, lineHeight: 1.5 }}>
+            Descarga la plantilla para rellenar tus datos con el formato correcto antes de importar.
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+            {['csv', 'xlsx'].map(f => (
+              <div key={f} onClick={() => setTemplateFormat(f)} style={{ flex: 1, padding: '9px 0', borderRadius: 11, textAlign: 'center', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', background: templateFormat === f ? t.accent : t.surface2, color: templateFormat === f ? '#fff' : t.text2, transition: 'all 0.15s' }}>
+                {f.toUpperCase()}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: t.accentSoft, border: `1px solid ${t.accent}33`, cursor: 'pointer' }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PelasIcon name="arrow-down" size={16} color="#fff" strokeWidth={2.4}/>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: t.accent }}>Descargar plantilla</div>
+              <div style={{ fontSize: 11, color: t.text2 }}>pelas_plantilla.{templateFormat} · ~4 KB</div>
+            </div>
+            <PelasIcon name="chevron-right" size={15} color={t.accent}/>
+          </div>
+        </div>
+
+        {/* Zona de carga */}
+        <div style={{ marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Tu archivo</div>
+          {fileName ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 14, background: t.accent + '10', border: `1.5px solid ${t.accent}` }}>
+              <div style={{ width: 36, height: 36, borderRadius: 11, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name="check" size={16} color={t.accent} strokeWidth={2.5}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: t.accent }}>{fileName}</div>
+                <div style={{ fontSize: 11, color: t.text2, marginTop: 1 }}>Listo para importar</div>
+              </div>
+              <div onClick={() => setFileName(null)} style={{ cursor: 'pointer' }}>
+                <PelasIcon name="x" size={16} color={t.text2}/>
+              </div>
+            </div>
+          ) : (
+            <div onClick={pickFile} style={{ border: `2px dashed ${t.border}`, borderRadius: 18, padding: '32px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer', background: t.surface2, transition: 'border-color 0.15s' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 16, background: t.surface, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="arrow-up" size={22} color={t.text2}/>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 14, fontWeight: 500, color: t.text, marginBottom: 4 }}>Selecciona un archivo</div>
+                <div style={{ fontSize: 11.5, color: t.text2 }}>CSV o Excel (.xlsx)</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Aviso */}
+        <Card theme={theme} padding={14} radius={14} style={{ background: theme === 'dark' ? 'rgba(255,194,52,0.08)' : 'rgba(255,194,52,0.06)', border: '1px solid rgba(255,194,52,0.25)' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <PelasIcon name="bell" size={15} color="#FFC234"/>
+            <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>
+              La importación añade los nuevos registros sin borrar los existentes. Los duplicados se detectan y omiten automáticamente.
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div style={{ padding: '12px 22px 28px', flexShrink: 0 }}>
+        <button
+          onClick={startImport}
+          disabled={!fileName}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: fileName ? t.accent : t.surface2, color: fileName ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: fileName ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s' }}
+        >
+          <PelasIcon name="arrow-down" size={16} color={fileName ? '#fff' : t.text2} strokeWidth={2.4}/>
+          Importar datos
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ── Cloud Backup ───────────────────────────────────────────────────────────────
+
+const CLOUD_PROVIDERS = [
+  { id: 'icloud',   name: 'iCloud',       sub: 'Apple iCloud Drive',       color: '#0066FF', init: 'iC' },
+  { id: 'gdrive',   name: 'Google Drive', sub: 'Google One Storage',       color: '#34A853', init: 'GD' },
+  { id: 'onedrive', name: 'OneDrive',     sub: 'Microsoft OneDrive',       color: '#0078D4', init: 'OD' },
+];
+
+export const CloudBackupScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [connected, setConnected] = useState(null);
+  const [backing, setBacking]     = useState(false);
+  const [lastBackup, setLastBackup] = useState(null);
+
+  const provider = CLOUD_PROVIDERS.find(p => p.id === connected);
+
+  const doBackup = () => {
+    setBacking(true);
+    setTimeout(() => { setBacking(false); setLastBackup(new Date()); }, 2200);
+  };
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Backup en la nube" onBack={onBack}/>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+
+        {/* Estado de conexión */}
+        {connected && (
+          <Card theme={theme} padding={16} radius={18} style={{ marginBottom: 18, background: backing ? t.accentSoft : 'rgba(63,185,132,0.08)', border: `1px solid ${backing ? t.accent + '44' : 'rgba(63,185,132,0.25)'}`, transition: 'all 0.3s' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 14, background: (backing ? t.accent : t.positive) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name={backing ? 'refresh' : 'check'} size={20} color={backing ? t.accent : t.positive} strokeWidth={2.2}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{backing ? 'Realizando backup…' : `Conectado a ${provider.name}`}</div>
+                <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>
+                  {backing ? 'No cierres la aplicación' : lastBackup ? `Último backup: ${lastBackup.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'Sin backup todavía'}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Proveedores */}
+        <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Proveedor</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          {CLOUD_PROVIDERS.map(p => {
+            const isConn = connected === p.id;
+            return (
+              <Card key={p.id} theme={theme} padding={16} radius={18} style={{ border: `1.5px solid ${isConn ? p.color : t.border}`, background: isConn ? p.color + '0A' : t.surface, transition: 'all 0.2s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ width: 46, height: 46, borderRadius: 15, background: p.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: p.color, letterSpacing: -0.3 }}>{p.init}</span>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{p.name}</div>
+                    <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>{p.sub}</div>
+                  </div>
+                  {isConn ? (
+                    <div onClick={() => { setConnected(null); setLastBackup(null); }} style={{ padding: '7px 14px', borderRadius: 20, background: 'rgba(225,99,100,0.1)', border: '1px solid rgba(225,99,100,0.25)', cursor: 'pointer' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: t.negative }}>Desconectar</span>
+                    </div>
+                  ) : (
+                    <div onClick={() => { setConnected(p.id); setLastBackup(null); }} style={{ padding: '7px 14px', borderRadius: 20, background: p.color + '18', border: `1px solid ${p.color}44`, cursor: 'pointer' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: p.color }}>Conectar</span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Configuración del backup (solo cuando conectado) */}
+        {connected && (
+          <>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 }}>Configuración</div>
+            <Card theme={theme} padding={6} radius={16} style={{ marginBottom: 18 }}>
+              {[
+                { label: 'Backup automático',      sub: 'Diariamente a las 3:00 AM' },
+                { label: 'Cifrado de datos',       sub: 'AES-256 end-to-end' },
+                { label: 'Historial de versiones', sub: 'Últimas 30 copias' },
+              ].map((opt, i, arr) => (
+                <div key={opt.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 10px', borderBottom: i < arr.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{opt.label}</div>
+                    <div style={{ fontSize: 11, color: t.text2, marginTop: 1 }}>{opt.sub}</div>
+                  </div>
+                  <PelasIcon name="check" size={16} color={t.positive} strokeWidth={2.5}/>
+                </div>
+              ))}
+            </Card>
+          </>
+        )}
+
+        {/* Info */}
+        <Card theme={theme} padding={14} radius={14} style={{ background: theme === 'dark' ? 'rgba(0,102,255,0.07)' : 'rgba(0,102,255,0.05)', border: '1px solid rgba(0,102,255,0.15)' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <PelasIcon name="shield" size={15} color={t.accent}/>
+            <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>
+              Tus datos se cifran de extremo a extremo antes de subirse a la nube. Ni Pelas ni el proveedor pueden acceder a su contenido.
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Botón de backup */}
+      {connected && (
+        <div style={{ padding: '12px 22px 28px', flexShrink: 0 }}>
+          <button
+            onClick={doBackup}
+            disabled={backing}
+            style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: backing ? t.surface2 : provider.color, color: backing ? t.text2 : '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: backing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'all 0.2s' }}
+          >
+            <PelasIcon name={backing ? 'refresh' : 'shield'} size={16} color={backing ? t.text2 : '#fff'} strokeWidth={2.4}/>
+            {backing ? 'Guardando en la nube…' : 'Hacer backup ahora'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

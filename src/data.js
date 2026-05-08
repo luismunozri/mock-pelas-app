@@ -102,10 +102,10 @@ export const PELAS_NOTIFICATIONS = [
 ];
 
 export const PELAS_ACCOUNTS = [
-  { id: 'a1', name: 'Efectivo', bank: 'Cartera',          balance:   180.00, color: '#3FB984', icon: 'wallet', type: 'cash', currency: 'EUR' },
-  { id: 'a2', name: 'BBVA',    bank: 'Cuenta Online',    balance: 2860.42,  color: '#0066FF', icon: 'card',   type: 'bank', currency: 'EUR' },
-  { id: 'a3', name: 'Sabadell',bank: 'Cuenta Expansión', balance: 1107.00,  color: '#1B3A8C', icon: 'card',   type: 'bank', currency: 'USD' },
-  { id: 'a4', name: 'Revolut', bank: 'Personal',         balance:   140.00, color: '#7C5CFF', icon: 'card',   type: 'bank', currency: 'GBP' },
+  { id: 'a1', name: 'Efectivo', bank: 'Cartera',          balance:   180.00, color: '#3FB984', icon: 'wallet', type: 'cash', currency: 'EUR', shared: false, sharedWith: [] },
+  { id: 'a2', name: 'BBVA',    bank: 'Cuenta Online',    balance: 2860.42,  color: '#0066FF', icon: 'card',   type: 'bank', currency: 'EUR', shared: true,  sharedWith: [{ name: 'Carlos Bayón', email: 'carlos.bayon@correo.es', initials: 'CB' }] },
+  { id: 'a3', name: 'Sabadell',bank: 'Cuenta Expansión', balance: 1107.00,  color: '#1B3A8C', icon: 'card',   type: 'bank', currency: 'USD', shared: true,  sharedWith: [{ name: 'Carlos Bayón', email: 'carlos.bayon@correo.es', initials: 'CB' }, { name: 'Ana Bayón', email: 'ana.bayon@correo.es', initials: 'AB' }] },
+  { id: 'a4', name: 'Revolut', bank: 'Personal',         balance:   140.00, color: '#7C5CFF', icon: 'card',   type: 'bank', currency: 'GBP', shared: false, sharedWith: [] },
 ];
 
 export const PELAS_INCOME_CATEGORIES = [

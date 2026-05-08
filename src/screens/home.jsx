@@ -63,15 +63,17 @@ const Toggle = ({ on, color = '#0066FF', onChange }) => (
 );
 
 // ── Default widget config ────────────────────────────────────────────────────
+// tabletCol: 'full' = ambas columnas · 'left' = col izquierda · 'right' = col derecha
 const DEFAULT_WIDGETS = [
-  { id: 'balance',      label: 'Visión global',               icon: 'chart',    enabled: true  },
-  { id: 'accounts',     label: 'Carrusel de cuentas',         icon: 'wallet',   enabled: true  },
-  { id: 'transactions', label: 'Movimientos recientes',       icon: 'card',     enabled: true  },
-  { id: 'cards',        label: 'Mis tarjetas',                icon: 'card',     enabled: true },
-  { id: 'budget-bar',   label: 'Barra de presupuesto',        icon: 'goal',     enabled: true },
-  { id: 'budgets',      label: 'Presupuestos detallados',     icon: 'goal',     enabled: true },
-  { id: 'donut-both',   label: 'Gastos e ingresos combinado', icon: 'chart',    enabled: true },
-  { id: 'goals',        label: 'Objetivos de ahorro',         icon: 'shield',   enabled: true },
+  { id: 'balance',          label: 'Visión global',               icon: 'chart',    enabled: true, tabletCol: 'full'  },
+  { id: 'accounts',         label: 'Carrusel de cuentas',         icon: 'wallet',   enabled: true, tabletCol: 'full'  },
+  { id: 'transactions',     label: 'Movimientos recientes',       icon: 'card',     enabled: true, tabletCol: 'right' },
+  { id: 'cards',            label: 'Mis tarjetas',                icon: 'card',     enabled: true, tabletCol: 'left'  },
+  { id: 'budget-bar',       label: 'Barra de presupuesto',        icon: 'goal',     enabled: true, tabletCol: 'left'  },
+  { id: 'budgets',          label: 'Presupuestos detallados',     icon: 'goal',     enabled: true, tabletCol: 'right' },
+  { id: 'donut-both',       label: 'Gastos e ingresos combinado', icon: 'chart',    enabled: true, tabletCol: 'full'  },
+  { id: 'shared-accounts',  label: 'Cuentas compartidas',         icon: 'people',   enabled: true, tabletCol: 'full'  },
+  { id: 'goals',            label: 'Objetivos de ahorro',         icon: 'shield',   enabled: true, tabletCol: 'full'  },
 ];
 
 const DEFAULT_WIDGET_SETTINGS = {
@@ -81,12 +83,13 @@ const DEFAULT_WIDGET_SETTINGS = {
   cards:        { order: ['c1','c2'], hidden: [] },
   'budget-bar': { mode: 'simple' },
   budgets:      { order: ['b1','b2','b3','b4'], hidden: [] },
+  'donut-both': { period: 'month' },
   goals:        { order: ['g1','g2','g3'], hidden: [] },
 };
 
 const WIDGETS_WITH_SETTINGS = [
   'balance','accounts','transactions','cards',
-  'budget-bar','budgets','goals',
+  'budget-bar','budgets','donut-both','goals',
 ];
 
 // ── Individual widget renderers ───────────────────────────────────────────────
@@ -442,6 +445,137 @@ const WidgetGoals = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS.goa
 
 // ── Widget: Barra de presupuesto mensual ─────────────────────────────────────
 
+// ── Widget: Cuentas compartidas ───────────────────────────────────────────────
+
+const CURRENCY_SYMBOLS = { EUR: '€', USD: '$', GBP: '£', CHF: 'Fr', JPY: '¥', CAD: 'CA$', AUD: 'A$' };
+
+const WidgetSharedAccounts = ({ theme, onNavigate, familyGroup }) => {
+  const t = T(theme);
+  const sharedAccounts = PELAS_ACCOUNTS.filter(a => a.shared);
+  const hasGroup = !!familyGroup?.group;
+  const groupName = familyGroup?.group?.name || '';
+  const groupMembers = familyGroup?.members ?? [];
+
+  const allAvatars = groupMembers.slice(0, 4);
+
+  const MemberDots = ({ count = 3 }) => (
+    <div style={{ display: 'flex', alignItems: 'center' }}>
+      {allAvatars.slice(0, count).map((m, i) => (
+        <div key={m.id} style={{ width: 22, height: 22, borderRadius: 11, background: m.id === 'u0' ? 'linear-gradient(135deg,#0066FF,#7C5CFF)' : (m.color || '#7C5CFF'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 700, border: `1.5px solid ${t.surface}`, marginLeft: i > 0 ? -6 : 0, zIndex: count - i, flexShrink: 0 }}>
+          {m.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+        </div>
+      ))}
+      {groupMembers.length > count && (
+        <div style={{ width: 22, height: 22, borderRadius: 11, background: t.surface2, border: `1.5px solid ${t.surface}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, color: t.text2, marginLeft: -6, flexShrink: 0 }}>
+          +{groupMembers.length - count}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Cuentas compartidas" action="Ver todo" onAction={() => onNavigate('accounts')}/>
+
+      {/* Sin grupo familiar */}
+      {!hasGroup ? (
+        <Card theme={theme} padding={20} radius={20}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name="people" size={22} color={t.text2}/>
+            </div>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text, marginBottom: 4 }}>Sin grupo familiar</div>
+              <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>Crea un grupo familiar en tu perfil para ver las cuentas compartidas aquí</div>
+            </div>
+            <div onClick={() => onNavigate('profile')} style={{ fontSize: 12.5, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>
+              Ir al perfil →
+            </div>
+          </div>
+        </Card>
+
+      ) : sharedAccounts.length === 0 ? (
+        /* Grupo existe pero sin cuentas compartidas */
+        <Card theme={theme} padding={20} radius={20}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, textAlign: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: 16, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name="card" size={22} color={t.accent}/>
+            </div>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: t.text, marginBottom: 4 }}>Ninguna cuenta compartida</div>
+              <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>Marca una cuenta como compartida desde la sección de Cuentas</div>
+            </div>
+            <div onClick={() => onNavigate('accounts')} style={{ fontSize: 12.5, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>
+              Ir a Cuentas →
+            </div>
+          </div>
+        </Card>
+
+      ) : (
+        /* Cuentas compartidas */
+        <>
+          {/* Cabecera del grupo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 14, background: t.accentSoft, marginBottom: 10 }}>
+            <MemberDots count={4}/>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: t.accent, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{groupName}</div>
+              <div style={{ fontSize: 11, color: t.text2, marginTop: 1 }}>
+                {groupMembers.length} miembro{groupMembers.length !== 1 ? 's' : ''} · {sharedAccounts.length} cuenta{sharedAccounts.length !== 1 ? 's' : ''} compartida{sharedAccounts.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          </div>
+
+          {/* Lista de cuentas */}
+          <Card theme={theme} padding={0} radius={20}>
+            {sharedAccounts.map((acc, i) => {
+              const sym = CURRENCY_SYMBOLS[acc.currency] || acc.currency;
+              const balanceStr = `${acc.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })} ${sym}`;
+              const sharedPeople = hasGroup ? groupMembers : acc.sharedWith;
+              return (
+                <div key={acc.id} onClick={() => onNavigate('accounts')} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderBottom: i < sharedAccounts.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
+                  {/* Icon */}
+                  <div style={{ width: 44, height: 44, borderRadius: 14, background: acc.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PelasIcon name={acc.icon} size={20} color={acc.color}/>
+                  </div>
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{acc.name}</div>
+                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 3, background: acc.color + '18', padding: '2px 6px', borderRadius: 6 }}>
+                        <PelasIcon name="people" size={9} color={acc.color}/>
+                        <span style={{ fontSize: 9.5, color: acc.color, fontWeight: 700 }}>FAMILIA</span>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: t.text2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{acc.bank}</div>
+                  </div>
+                  {/* Balance + avatars */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 5, flexShrink: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{balanceStr}</div>
+                    {groupMembers.length > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        {groupMembers.slice(0, 3).map((m, mi) => (
+                          <div key={m.id} style={{ width: 18, height: 18, borderRadius: 9, background: m.id === 'u0' ? 'linear-gradient(135deg,#0066FF,#7C5CFF)' : (m.color || '#7C5CFF'), display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 7, fontWeight: 700, border: `1.5px solid ${t.surface}`, marginLeft: mi > 0 ? -5 : 0, zIndex: 3 - mi, flexShrink: 0 }}>
+                            {m.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+                          </div>
+                        ))}
+                        {groupMembers.length > 3 && (
+                          <div style={{ width: 18, height: 18, borderRadius: 9, background: t.surface2, border: `1.5px solid ${t.surface}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700, color: t.text2, marginLeft: -5, flexShrink: 0 }}>
+                            +{groupMembers.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </Card>
+        </>
+      )}
+    </div>
+  );
+};
+
 const WidgetBudgetBar = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS['budget-bar'] }) => {
   const t = T(theme);
   const totalBudget = PELAS_BUDGETS.reduce((s, b) => s + b.budget, 0);
@@ -506,20 +640,32 @@ const WidgetBudgetBar = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS
 
 // ── Widget: Gráfico combinado (gastos + ingresos) ────────────────────────────
 
-const WidgetDonutCombined = ({ theme }) => {
-  const t = T(theme);
-  const [active, setActive] = useState(null); // null | 'exp' | 'inc'
+const DONUT_PERIODS = [
+  { id: 'week',    label: 'Esta semana',      mult: 0.25 },
+  { id: 'month',   label: 'Este mes',         mult: 1    },
+  { id: 'quarter', label: 'Últ. trimestre',   mult: 3    },
+  { id: 'year',    label: 'Este año',         mult: 12   },
+];
 
-  const expTotal = PELAS_CATEGORIES.reduce((s, c) => s + c.spent, 0);
-  const incTotal = PELAS_INCOME_CATEGORIES.reduce((s, c) => s + c.amount, 0);
+const WidgetDonutCombined = ({ theme, settings = {} }) => {
+  const t = T(theme);
+  const [active, setActive] = useState(null);
+
+  const period = settings.period || 'month';
+  const { mult, label: periodLabel } = DONUT_PERIODS.find(p => p.id === period);
+
+  const rawExpTotal = PELAS_CATEGORIES.reduce((s, c) => s + c.spent, 0);
+  const rawIncTotal = PELAS_INCOME_CATEGORIES.reduce((s, c) => s + c.amount, 0);
+  const expTotal = rawExpTotal * mult;
+  const incTotal = rawIncTotal * mult;
 
   const expData = PELAS_CATEGORIES.slice(0, 5).map(c => ({ v: c.spent, color: c.color }));
   const incData = PELAS_INCOME_CATEGORIES.map(c => ({ v: c.amount, color: c.color }));
 
   const breakdown = active === 'exp'
-    ? PELAS_CATEGORIES.slice(0, 5).map(c => ({ label: c.label, color: c.color, pct: Math.round((c.spent / expTotal) * 100), amount: c.spent }))
+    ? PELAS_CATEGORIES.slice(0, 5).map(c => ({ label: c.label, color: c.color, pct: Math.round((c.spent / rawExpTotal) * 100), amount: c.spent * mult }))
     : active === 'inc'
-    ? PELAS_INCOME_CATEGORIES.map(c => ({ label: c.label, color: c.color, pct: Math.round((c.amount / incTotal) * 100), amount: c.amount }))
+    ? PELAS_INCOME_CATEGORIES.map(c => ({ label: c.label, color: c.color, pct: Math.round((c.amount / rawIncTotal) * 100), amount: c.amount * mult }))
     : [];
 
   const DonutTile = ({ id, label, data, total, color }) => {
@@ -530,7 +676,7 @@ const WidgetDonutCombined = ({ theme }) => {
           <Donut theme={theme} size={100} thickness={12} data={data}/>
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ fontSize: 8.5, color: t.text2 }}>{label}</div>
-            <div style={{ fontSize: 13, fontWeight: 600 }}>{Math.round(total / 1000 * 10) / 10}k €</div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>{(total / 1000).toFixed(1)}k €</div>
           </div>
         </div>
         <div style={{ fontSize: 11, color: isActive ? color : t.text2, fontWeight: isActive ? 600 : 400 }}>
@@ -542,16 +688,13 @@ const WidgetDonutCombined = ({ theme }) => {
 
   return (
     <div style={{ marginBottom: 22 }}>
-      <SectionTitle theme={theme} title="Gastos e ingresos"/>
+      <SectionTitle theme={theme} title="Gastos e ingresos" action={periodLabel}/>
       <Card theme={theme} padding={12} radius={22}>
-        {/* Dos donuts lado a lado */}
         <div style={{ display: 'flex', gap: 8 }}>
           <DonutTile id="exp" label="Gastos"   data={expData} total={expTotal} color={t.negative}/>
           <div style={{ width: 1, background: t.border, margin: '8px 0' }}/>
           <DonutTile id="inc" label="Ingresos" data={incData} total={incTotal} color={t.positive}/>
         </div>
-
-        {/* Desglose expandible */}
         {active && (
           <div style={{ borderTop: `1px solid ${t.border}`, marginTop: 4, paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {breakdown.map((item, i) => (
@@ -847,7 +990,7 @@ const WidgetSettingsSheet = ({ theme, widgetId, settings, onSave, onClose }) => 
     balance: 'Visión global', accounts: 'Carrusel de cuentas',
     transactions: 'Movimientos recientes', cards: 'Mis tarjetas',
     'budget-bar': 'Presupuesto del mes', budgets: 'Presupuestos',
-    goals: 'Mis metas',
+    'donut-both': 'Gastos e ingresos', goals: 'Mis metas',
   };
 
   // ── Drag helpers for ordered lists ──
@@ -1027,6 +1170,28 @@ const WidgetSettingsSheet = ({ theme, widgetId, settings, onSave, onClose }) => 
     );
 
     // ── goals ──
+    if (widgetId === 'donut-both') return (
+      <>
+        <div style={{ fontSize: 12, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 12 }}>Periodo</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {DONUT_PERIODS.map(opt => {
+            const selected = (local.period || 'month') === opt.id;
+            return (
+              <div key={opt.id} onClick={() => set('period', opt.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', borderRadius: 14, cursor: 'pointer', background: selected ? t.accent + '14' : t.surface2, border: `1.5px solid ${selected ? t.accent : 'transparent'}`, transition: 'all 0.15s' }}>
+                <div style={{ width: 20, height: 20, borderRadius: 10, background: selected ? t.accent : 'transparent', border: `1.5px solid ${selected ? t.accent : t.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                  {selected && <PelasIcon name="check" size={11} color="#fff" strokeWidth={3}/>}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: selected ? 600 : 400, color: selected ? t.accent : t.text }}>{opt.label}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </>
+    );
+
     if (widgetId === 'goals') return (
       <>
         <div style={{ fontSize: 12, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>Orden y visibilidad</div>
@@ -1069,7 +1234,36 @@ const WidgetSettingsSheet = ({ theme, widgetId, settings, onSave, onClose }) => 
 
 // ── Home config sheet ─────────────────────────────────────────────────────────
 
-const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidgetSettings, onClose }) => {
+const ColPicker = ({ value, onChange, color, t }) => {
+  const opts = [
+    { id: 'left',  label: 'Izq.' },
+    { id: 'full',  label: 'Todo' },
+    { id: 'right', label: 'Der.' },
+  ];
+  return (
+    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+      {opts.map(opt => {
+        const sel = value === opt.id;
+        return (
+          <div key={opt.id} onClick={() => onChange(opt.id)} title={opt.label}
+            style={{ width: 34, height: 26, borderRadius: 7, border: `1.5px solid ${sel ? color : t.border}`, background: sel ? color + '18' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, padding: '0 5px', cursor: 'pointer', transition: 'all 0.15s' }}>
+            {opt.id === 'left'  && (
+              <><div style={{ flex: 1, height: 9, borderRadius: 2, background: sel ? color : t.borderStrong }}/><div style={{ flex: 1, height: 9, borderRadius: 2, border: `1px solid ${t.border}` }}/></>
+            )}
+            {opt.id === 'full'  && (
+              <div style={{ flex: 1, height: 9, borderRadius: 2, background: sel ? color : t.borderStrong }}/>
+            )}
+            {opt.id === 'right' && (
+              <><div style={{ flex: 1, height: 9, borderRadius: 2, border: `1px solid ${t.border}` }}/><div style={{ flex: 1, height: 9, borderRadius: 2, background: sel ? color : t.borderStrong }}/></>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidgetSettings, tablet, onClose }) => {
   const t = T(theme);
   const dragIndex = useRef(null);
   const [dragOver, setDragOver] = useState(null);
@@ -1077,6 +1271,9 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
 
   const toggle = (id) =>
     setWidgets(ws => ws.map(w => w.id === id ? { ...w, enabled: !w.enabled } : w));
+
+  const setTabletCol = (id, col) =>
+    setWidgets(ws => ws.map(w => w.id === id ? { ...w, tabletCol: col } : w));
 
   const onDragStart = (i) => { dragIndex.current = i; };
 
@@ -1116,12 +1313,20 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 17, fontWeight: 600 }}>Personalizar inicio</div>
-              <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>Activa, desactiva y arrastra para reordenar</div>
+              <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>
+                {tablet ? 'Activa, reordena y elige columna en tablet' : 'Activa, desactiva y arrastra para reordenar'}
+              </div>
             </div>
             <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <PelasIcon name="x" size={15} color={t.text2}/>
             </div>
           </div>
+          {tablet && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: t.accentSoft, marginBottom: 10 }}>
+              <PelasIcon name="laptop" size={13} color={t.accent}/>
+              <div style={{ fontSize: 11.5, color: t.accent, fontWeight: 500 }}>Modo tablet activo — configura la columna de cada widget</div>
+            </div>
+          )}
         </div>
 
         {/* Widget list */}
@@ -1137,7 +1342,6 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
                 onDrop={e => onDrop(e, i)}
                 onDragEnd={onDragEnd}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 12,
                   padding: '13px 14px', marginBottom: 8, borderRadius: 16,
                   background: isOver ? t.accentSoft : t.surface,
                   border: `1px solid ${isOver ? t.accent : t.border}`,
@@ -1145,36 +1349,52 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
                   cursor: 'grab',
                 }}
               >
-                {/* Drag handle */}
-                <div style={{ opacity: 0.4, flexShrink: 0 }}>
-                  <GripIcon color={t.text}/>
-                </div>
-
-                {/* Icon */}
-                <div style={{ width: 36, height: 36, borderRadius: 11, background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <PelasIcon name={w.icon} size={16} color={color}/>
-                </div>
-
-                {/* Label */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: w.enabled ? t.text : t.text2 }}>{w.label}</div>
-                  <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>
-                    {w.enabled ? 'Visible' : 'Oculto'}
+                {/* Main row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {/* Drag handle */}
+                  <div style={{ opacity: 0.4, flexShrink: 0 }}>
+                    <GripIcon color={t.text}/>
                   </div>
+
+                  {/* Icon */}
+                  <div style={{ width: 36, height: 36, borderRadius: 11, background: color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PelasIcon name={w.icon} size={16} color={color}/>
+                  </div>
+
+                  {/* Label */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5, fontWeight: 500, color: w.enabled ? t.text : t.text2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.label}</div>
+                    <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>
+                      {w.enabled ? 'Visible' : 'Oculto'}
+                    </div>
+                  </div>
+
+                  {/* Settings ··· (only for configurable widgets) */}
+                  {WIDGETS_WITH_SETTINGS.includes(w.id) && (
+                    <div
+                      onClick={e => { e.stopPropagation(); setSettingsFor(w.id); }}
+                      style={{ width: 30, height: 30, borderRadius: 9, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                    >
+                      <PelasIcon name="more" size={14} color={t.text2}/>
+                    </div>
+                  )}
+
+                  {/* Toggle */}
+                  <Toggle on={w.enabled} color={color} onChange={() => toggle(w.id)}/>
                 </div>
 
-                {/* Settings ··· (only for configurable widgets) */}
-                {WIDGETS_WITH_SETTINGS.includes(w.id) && (
-                  <div
-                    onClick={e => { e.stopPropagation(); setSettingsFor(w.id); }}
-                    style={{ width: 30, height: 30, borderRadius: 9, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-                  >
-                    <PelasIcon name="more" size={14} color={t.text2}/>
+                {/* Tablet column picker — second row */}
+                {tablet && (
+                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.border}` }}>
+                    <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, flex: 1 }}>Columna en tablet</div>
+                    <ColPicker
+                      value={w.tabletCol || 'full'}
+                      onChange={col => setTabletCol(w.id, col)}
+                      color={color}
+                      t={t}
+                    />
                   </div>
                 )}
-
-                {/* Toggle */}
-                <Toggle on={w.enabled} color={color} onChange={() => toggle(w.id)}/>
               </div>
             );
           })}
@@ -1233,7 +1453,10 @@ const HomeHeader = ({ theme, onNavigate, onMore }) => {
 
 // ── Configurable home (variant A) ─────────────────────────────────────────────
 
-const HomeVariantA = ({ theme, onNavigate }) => {
+const tabletGridCol = (col) =>
+  col === 'full' ? '1 / -1' : col === 'left' ? '1' : '2';
+
+const HomeVariantA = ({ theme, onNavigate, tablet = false, familyGroup }) => {
   const t = T(theme);
   const [hideBalance, setHideBalance] = useState(false);
   const [widgets, setWidgets] = useState(DEFAULT_WIDGETS);
@@ -1257,13 +1480,27 @@ const HomeVariantA = ({ theme, onNavigate }) => {
       case 'budgets':
         return <WidgetBudgets key={w.id} theme={theme} onNavigate={onNavigate} settings={widgetSettings.budgets}/>;
       case 'donut-both':
-        return <WidgetDonutCombined key={w.id} theme={theme}/>;
+        return <WidgetDonutCombined key={w.id} theme={theme} settings={widgetSettings['donut-both']}/>;
+      case 'shared-accounts':
+        return <WidgetSharedAccounts key={w.id} theme={theme} onNavigate={onNavigate} familyGroup={familyGroup}/>;
       case 'goals':
         return <WidgetGoals key={w.id} theme={theme} onNavigate={onNavigate} settings={widgetSettings.goals}/>;
       default:
         return null;
     }
   };
+
+  const widgetArea = tablet ? (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' }}>
+      {active.map(w => (
+        <div key={w.id} style={{ gridColumn: tabletGridCol(w.tabletCol || 'full') }}>
+          {renderWidget(w)}
+        </div>
+      ))}
+    </div>
+  ) : (
+    active.map(renderWidget)
+  );
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
@@ -1276,7 +1513,7 @@ const HomeVariantA = ({ theme, onNavigate }) => {
             <div style={{ fontSize: 12 }}>Pulsa ··· para añadir widgets</div>
           </div>
         )}
-        {active.map(renderWidget)}
+        {widgetArea}
       </div>
 
       {showConfig && (
@@ -1286,6 +1523,7 @@ const HomeVariantA = ({ theme, onNavigate }) => {
           setWidgets={setWidgets}
           widgetSettings={widgetSettings}
           setWidgetSettings={setWidgetSettings}
+          tablet={tablet}
           onClose={() => setShowConfig(false)}
         />
       )}
@@ -1425,8 +1663,6 @@ const HomeVariantC = ({ theme, onNavigate }) => {
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
-export const HomeScreen = ({ theme, variant = 'A', onNavigate }) => {
-  if (variant === 'B') return <HomeVariantB theme={theme} onNavigate={onNavigate}/>;
-  if (variant === 'C') return <HomeVariantC theme={theme} onNavigate={onNavigate}/>;
-  return <HomeVariantA theme={theme} onNavigate={onNavigate}/>;
+export const HomeScreen = ({ theme, onNavigate, tablet = false, familyGroup }) => {
+  return <HomeVariantA theme={theme} onNavigate={onNavigate} tablet={tablet} familyGroup={familyGroup}/>;
 };

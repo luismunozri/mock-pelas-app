@@ -37,19 +37,38 @@ const BLANK = {
   shared: false, sharedWith: [],
 };
 
-const AccountSheet = ({ theme, initial, onClose, onSave }) => {
+const mkInitials = (name) => name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+const AccountSheet = ({ theme, initial, onClose, onSave, familyGroup }) => {
   const t = T(theme);
   const editing = !!initial;
   const [form, setForm] = useState(initial ?? BLANK);
   const [inviteEmail, setInviteEmail] = useState('');
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const hasFamilyGroup = !!familyGroup?.group;
+  const familyNonAdminMembers = (familyGroup?.members ?? []).filter(m => m.id !== 'u0');
+
+  const handleToggleShared = () => {
+    const next = !form.shared;
+    if (next && hasFamilyGroup && familyNonAdminMembers.length > 0) {
+      const autoAdded = familyNonAdminMembers.map(m => ({
+        email: m.email,
+        name: m.name,
+        initials: mkInitials(m.name),
+        fromFamily: true,
+      }));
+      setForm(f => ({ ...f, shared: true, sharedWith: autoAdded }));
+    } else {
+      set('shared', next);
+    }
+  };
+
   const addSharedUser = () => {
     const email = inviteEmail.trim();
     if (!email || form.sharedWith.some(u => u.email === email)) return;
     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    set('sharedWith', [...form.sharedWith, { email, name, initials }]);
+    set('sharedWith', [...form.sharedWith, { email, name, initials: mkInitials(name) }]);
     setInviteEmail('');
   };
 
@@ -150,22 +169,37 @@ const AccountSheet = ({ theme, initial, onClose, onSave }) => {
                 <div style={{ fontSize: 13.5, fontWeight: 500 }}>Cuenta compartida</div>
                 <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>Comparte el acceso con otras personas</div>
               </div>
-              {/* Toggle */}
-              <div onClick={() => set('shared', !form.shared)} style={{ width: 42, height: 24, borderRadius: 12, position: 'relative', background: form.shared ? form.color : t.borderStrong, transition: 'background 0.18s', cursor: 'pointer', flexShrink: 0 }}>
+              <div onClick={handleToggleShared} style={{ width: 42, height: 24, borderRadius: 12, position: 'relative', background: form.shared ? form.color : t.borderStrong, transition: 'background 0.18s', cursor: 'pointer', flexShrink: 0 }}>
                 <div style={{ position: 'absolute', top: 4, left: form.shared ? 22 : 4, width: 16, height: 16, borderRadius: 8, background: '#fff', transition: 'left 0.18s', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}/>
               </div>
             </div>
 
             {form.shared && (
               <>
-                {/* Existing shared users */}
+                {/* Banner de grupo familiar si se auto-rellenó */}
+                {hasFamilyGroup && form.sharedWith.some(u => u.fromFamily) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 12, background: form.color + '12', border: `1px solid ${form.color}33`, marginBottom: 12 }}>
+                    <PelasIcon name="people" size={15} color={form.color}/>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: form.color }}>Miembros de "{familyGroup.group.name}" añadidos</div>
+                      <div style={{ fontSize: 10.5, color: t.text2, marginTop: 1 }}>Puedes añadir o quitar miembros manualmente</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista de usuarios compartidos */}
                 {form.sharedWith.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 12 }}>
                     {form.sharedWith.map(u => (
-                      <div key={u.email} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: t.surface, borderRadius: 14, border: `1px solid ${t.border}` }}>
+                      <div key={u.email} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: t.surface, borderRadius: 14, border: `1px solid ${u.fromFamily ? form.color + '44' : t.border}` }}>
                         <div style={{ width: 34, height: 34, borderRadius: 17, background: form.color + '28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: form.color, fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{u.initials}</div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                            <div style={{ fontSize: 13, fontWeight: 500 }}>{u.name}</div>
+                            {u.fromFamily && (
+                              <div style={{ fontSize: 9, fontWeight: 700, color: form.color, background: form.color + '18', padding: '1px 5px', borderRadius: 5, letterSpacing: 0.2 }}>FAMILIA</div>
+                            )}
+                          </div>
                           <div style={{ fontSize: 11, color: t.text2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email}</div>
                         </div>
                         <div onClick={() => removeShared(u.email)} style={{ width: 28, height: 28, borderRadius: 8, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -176,20 +210,20 @@ const AccountSheet = ({ theme, initial, onClose, onSave }) => {
                   </div>
                 )}
 
-                {/* Invite input */}
+                {/* Input de invitación manual */}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 14, padding: '0 14px', height: 48, gap: 10 }}>
                     <PelasIcon name="mail" size={16} color={t.text2}/>
                     <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && addSharedUser()}
-                      placeholder="Email del usuario…"
+                      placeholder="Añadir por email…"
                       style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13 }}/>
                   </div>
                   <div onClick={addSharedUser} style={{ width: 48, height: 48, borderRadius: 14, background: form.color, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
                     <PelasIcon name="plus" size={20} color="#fff" strokeWidth={2.4}/>
                   </div>
                 </div>
-                <div style={{ fontSize: 11, color: t.text3, marginTop: 6 }}>El usuario recibirá una invitación por email</div>
+                <div style={{ fontSize: 11, color: t.text3, marginTop: 6 }}>Los usuarios recibirán una invitación por email</div>
               </>
             )}
           </div>
@@ -208,7 +242,7 @@ const AccountSheet = ({ theme, initial, onClose, onSave }) => {
 
 // ── Accounts Screen ───────────────────────────────────────────────────────────
 
-export const AccountsScreen = ({ theme, onBack, onNavigate, initialFilters }) => {
+export const AccountsScreen = ({ theme, onBack, onNavigate, initialFilters, familyGroup }) => {
   const t = T(theme);
   const [accounts, setAccounts] = useState(seedAccounts);
   const [archived, setArchived] = useState([]);
@@ -413,8 +447,8 @@ export const AccountsScreen = ({ theme, onBack, onNavigate, initialFilters }) =>
         </div>
       </div>
 
-      {showAdd && <AccountSheet theme={theme} initial={null} onClose={() => setShowAdd(false)} onSave={saveAccount}/>}
-      {editing && <AccountSheet theme={theme} initial={editing} onClose={() => setEditing(null)} onSave={saveAccount}/>}
+      {showAdd && <AccountSheet theme={theme} initial={null} onClose={() => setShowAdd(false)} onSave={saveAccount} familyGroup={familyGroup}/>}
+      {editing && <AccountSheet theme={theme} initial={editing} onClose={() => setEditing(null)} onSave={saveAccount} familyGroup={familyGroup}/>}
     </div>
   );
 };
