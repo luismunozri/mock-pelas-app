@@ -96,15 +96,15 @@ export default function App() {
     if (route.name === 'stats-detail')    return <StatsDetailScreen theme={theme} widgetId={route.widgetId} onBack={() => { setTab('stats'); setRoute({ name: 'main' }); }} onNavigate={navigate}/>;
 
 
-    if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} familyGroup={familyGroup}/>;
-    if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'}/>;
+    if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'} familyGroup={familyGroup}/>;
+    if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
     if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')}/>;
     if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate}/>;
     return null;
   };
 
   const inMain = route.name === 'main' && ['home','stats','tx','invest'].includes(tab);
-  const isTablet = deviceMode === 'tablet';
+  const isTablet = deviceMode === 'tablet' || deviceMode === 'tablet-v';
   const isLandscape = !isTablet && route.name === 'stats-detail' && route.widgetId === 'stats-evolution';
 
   return (
@@ -126,7 +126,8 @@ export default function App() {
 
       <PelasFrame
         theme={theme}
-        tablet={isTablet}
+        tablet={deviceMode === 'tablet'}
+        tabletVertical={deviceMode === 'tablet-v'}
         landscape={isLandscape}
         tabBar={!isTablet && inMain ? <PelasTabBar theme={theme} active={tab} onChange={handleTabChange}/> : null}
         sidebar={isTablet && inMain ? <PelasTabSidebar theme={theme} active={tab} onChange={handleTabChange}/> : null}
@@ -175,7 +176,11 @@ export default function App() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, color: t.text }}>Dispositivo:</span>
-          {[{ id: 'phone', label: '📱 Móvil' }, { id: 'tablet', label: '⬛ Tablet' }].map(v => (
+          {[
+            { id: 'phone', label: '📱 Móvil' },
+            { id: 'tablet', label: '⬛ Tablet H' },
+            { id: 'tablet-v', label: '▮ Tablet V' }
+          ].map(v => (
             <div key={v.id} onClick={() => setDeviceMode(v.id)} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: deviceMode === v.id ? t.accent : t.surface2, color: deviceMode === v.id ? '#fff' : t.text2, fontWeight: deviceMode === v.id ? 600 : 400 }}>{v.label}</div>
           ))}
         </div>

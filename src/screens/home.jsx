@@ -1263,7 +1263,7 @@ const ColPicker = ({ value, onChange, color, t }) => {
   );
 };
 
-const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidgetSettings, tablet, onClose }) => {
+const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidgetSettings, tablet, tabletVertical, onClose }) => {
   const t = T(theme);
   const dragIndex = useRef(null);
   const [dragOver, setDragOver] = useState(null);
@@ -1314,14 +1314,14 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 17, fontWeight: 600 }}>Personalizar inicio</div>
               <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>
-                {tablet ? 'Activa, reordena y elige columna en tablet' : 'Activa, desactiva y arrastra para reordenar'}
+                {tabletVertical ? 'Activa, desactiva y arrastra para reordenar' : tablet ? 'Activa, reordena y elige columna en tablet' : 'Activa, desactiva y arrastra para reordenar'}
               </div>
             </div>
             <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
               <PelasIcon name="x" size={15} color={t.text2}/>
             </div>
           </div>
-          {tablet && (
+          {tablet && !tabletVertical && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: t.accentSoft, marginBottom: 10 }}>
               <PelasIcon name="laptop" size={13} color={t.accent}/>
               <div style={{ fontSize: 11.5, color: t.accent, fontWeight: 500 }}>Modo tablet activo — configura la columna de cada widget</div>
@@ -1384,7 +1384,7 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
                 </div>
 
                 {/* Tablet column picker — second row */}
-                {tablet && (
+                {tablet && !tabletVertical && (
                   <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, paddingTop: 10, borderTop: `1px solid ${t.border}` }}>
                     <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, flex: 1 }}>Columna en tablet</div>
                     <ColPicker
@@ -1456,7 +1456,7 @@ const HomeHeader = ({ theme, onNavigate, onMore }) => {
 const tabletGridCol = (col) =>
   col === 'full' ? '1 / -1' : col === 'left' ? '1' : '2';
 
-const HomeVariantA = ({ theme, onNavigate, tablet = false, familyGroup }) => {
+const HomeVariantA = ({ theme, onNavigate, tablet = false, tabletVertical = false, familyGroup }) => {
   const t = T(theme);
   const [hideBalance, setHideBalance] = useState(false);
   const [widgets, setWidgets] = useState(DEFAULT_WIDGETS);
@@ -1490,7 +1490,7 @@ const HomeVariantA = ({ theme, onNavigate, tablet = false, familyGroup }) => {
     }
   };
 
-  const widgetArea = tablet ? (
+  const widgetArea = (tablet && !tabletVertical) ? (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' }}>
       {active.map(w => (
         <div key={w.id} style={{ gridColumn: tabletGridCol(w.tabletCol || 'full') }}>
@@ -1524,6 +1524,7 @@ const HomeVariantA = ({ theme, onNavigate, tablet = false, familyGroup }) => {
           widgetSettings={widgetSettings}
           setWidgetSettings={setWidgetSettings}
           tablet={tablet}
+          tabletVertical={tabletVertical}
           onClose={() => setShowConfig(false)}
         />
       )}
@@ -1663,6 +1664,6 @@ const HomeVariantC = ({ theme, onNavigate }) => {
 
 // ── Export ────────────────────────────────────────────────────────────────────
 
-export const HomeScreen = ({ theme, onNavigate, tablet = false, familyGroup }) => {
-  return <HomeVariantA theme={theme} onNavigate={onNavigate} tablet={tablet} familyGroup={familyGroup}/>;
+export const HomeScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false, familyGroup }) => {
+  return <HomeVariantA theme={theme} onNavigate={onNavigate} tablet={tablet} tabletVertical={tabletVertical} familyGroup={familyGroup}/>;
 };
