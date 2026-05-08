@@ -475,9 +475,22 @@ export const TxDetailScreen = ({ theme, tx, onBack, onNavigate }) => {
 export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
   const t = T(theme);
   const groups = [
-    { title: 'Cuenta', items: [{ icon: 'user', label: 'Datos personales', sub: 'Nombre, email, teléfono' }, { icon: 'card', label: 'Tarjetas y cuentas', sub: '2 tarjetas vinculadas' }, { icon: 'lock', label: 'Seguridad', sub: 'Biometría, PIN, contraseña' }] },
-    { title: 'Preferencias', items: [{ icon: 'bell', label: 'Notificaciones', sub: 'Personaliza alertas' }, { icon: 'settings', label: 'Tema y estilo', sub: 'Personaliza colores y fuentes', onClick: () => onNavigate('theme-style') }, { icon: 'globe', label: 'Idioma', sub: 'Español (España)' }, { icon: 'people', label: 'Cuentas compartidas', sub: '2 grupos activos' }] },
-    { title: 'Ayuda', items: [{ icon: 'mail', label: 'Soporte', sub: 'Estamos aquí 24/7' }, { icon: 'book', label: 'Términos y condiciones' }, { icon: 'logout', label: 'Cerrar sesión', danger: true }] },
+    {
+      title: 'Cuenta',
+      items: [
+        { icon: 'user', label: 'Datos personales', sub: 'Nombre, email, teléfono', onClick: () => onNavigate('personal-data') },
+        { icon: 'lock', label: 'Seguridad', sub: 'Biometría, PIN, contraseña', onClick: () => onNavigate('security') },
+        { icon: 'filter', label: 'Categorías', sub: 'Gestiona tus categorías', onClick: () => onNavigate('profile-categories') },
+      ],
+    },
+    {
+      title: 'Preferencias',
+      items: [
+        { icon: 'bell', label: 'Notificaciones', sub: 'Personaliza alertas', onClick: () => onNavigate('notification-settings') },
+        { icon: 'settings', label: 'Tema y estilo', sub: 'Personaliza colores y fuentes', onClick: () => onNavigate('theme-style') },
+        { icon: 'globe', label: 'Idioma', sub: 'Español (España)', onClick: () => onNavigate('language') },
+      ],
+    },
   ];
   return (
     <div style={{ padding: '8px 22px 24px' }}>
@@ -502,7 +515,10 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
             <span style={{ fontSize: 10.5, color: t.accent, fontWeight: 600 }}>PELAS PRO</span>
           </div>
         </div>
-        <PelasIcon name="edit" size={18} color={t.text2}/>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(225,99,100,0.1)', border: '1px solid rgba(225,99,100,0.25)', borderRadius: 12, padding: '7px 11px', cursor: 'pointer', flexShrink: 0 }}>
+          <PelasIcon name="logout" size={14} color={t.negative}/>
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: t.negative }}>Salir</span>
+        </div>
       </Card>
       {groups.map(g => (
         <div key={g.title} style={{ marginBottom: 18 }}>
@@ -510,11 +526,11 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
           <Card theme={theme} padding={6} radius={18}>
             {g.items.map((it, i) => (
               <div key={it.label} onClick={it.onClick} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px', borderBottom: i < g.items.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
-                <div style={{ width: 36, height: 36, borderRadius: 12, background: it.danger ? 'rgba(225,99,100,0.16)' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <PelasIcon name={it.icon} size={16} color={it.danger ? t.negative : t.accent}/>
+                <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PelasIcon name={it.icon} size={16} color={t.accent}/>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 500, color: it.danger ? t.negative : t.text }}>{it.label}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500, color: t.text }}>{it.label}</div>
                   {it.sub && <div style={{ fontSize: 11, color: t.text2 }}>{it.sub}</div>}
                 </div>
                 <PelasIcon name="chevron-right" size={16} color={t.text2}/>
@@ -573,6 +589,13 @@ export const CategoriesScreen = ({ theme, onNavigate, onBack }) => {
 
 const BUDGET_COLORS = ['#0066FF','#7C5CFF','#FF8A4C','#5B8DEF','#3FB984','#E16364'];
 
+const BUDGET_PERIODS = [
+  { id: 'weekly',    label: 'Semanal' },
+  { id: 'monthly',   label: 'Mensual' },
+  { id: 'quarterly', label: 'Trimestral' },
+  { id: 'yearly',    label: 'Anual' },
+];
+
 const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
   const t = T(theme);
   const isEdit = !!initial;
@@ -581,8 +604,19 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
     budget: initial?.budget?.toString() || '',
     spent: initial?.spent?.toString() || '0',
     color: initial?.color || BUDGET_COLORS[0],
+    period: initial?.period || 'monthly',
+    categories: initial?.categories || [],
   });
   const set = (k, v) => setForm(s => ({ ...s, [k]: v }));
+
+  const toggleCategory = (id) => {
+    setForm(s => ({
+      ...s,
+      categories: s.categories.includes(id)
+        ? s.categories.filter(c => c !== id)
+        : [...s.categories, id],
+    }));
+  };
 
   const handleSave = () => {
     if (!form.label.trim() || !form.budget) return;
@@ -592,6 +626,8 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
       budget: parseFloat(form.budget) || 0,
       spent: parseFloat(form.spent) || 0,
       color: form.color,
+      period: form.period,
+      categories: form.categories,
     });
   };
 
@@ -608,7 +644,7 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
 
   return (
     <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '90%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '92%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
         <div style={{ padding: '14px 22px 0', flexShrink: 0 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18 }}>
@@ -619,6 +655,8 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
           </div>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px' }}>
+
+          {/* Nombre */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6 }}>Nombre</div>
             <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48 }}>
@@ -626,10 +664,50 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
                 style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
             </div>
           </div>
+
+          {/* Periodo */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 8 }}>Periodo</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {BUDGET_PERIODS.map(p => (
+                <div key={p.id} onClick={() => set('period', p.id)}
+                  style={{ flex: 1, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.period === p.id ? t.accent : t.surface2, color: form.period === p.id ? '#fff' : t.text2, transition: 'all 0.18s' }}>
+                  {p.label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Límite y ya gastado */}
           <div style={{ display: 'flex', gap: 12 }}>
-            <div style={{ flex: 1 }}><NumberField label="Límite mensual" value={form.budget} onChange={v => set('budget', v)} placeholder="600"/></div>
+            <div style={{ flex: 1 }}><NumberField label="Límite" value={form.budget} onChange={v => set('budget', v)} placeholder="600"/></div>
             <div style={{ flex: 1 }}><NumberField label="Ya gastado" value={form.spent} onChange={v => set('spent', v)} placeholder="0"/></div>
           </div>
+
+          {/* Categorías */}
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 4 }}>Categorías asociadas</div>
+            <div style={{ fontSize: 10.5, color: t.text3, marginBottom: 10 }}>Selecciona las categorías que cuentan para este presupuesto</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {PELAS_CATEGORIES.map(cat => {
+                const selected = form.categories.includes(cat.id);
+                return (
+                  <div key={cat.id} onClick={() => toggleCategory(cat.id)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 13, background: selected ? cat.color + '18' : t.surface2, border: `1.5px solid ${selected ? cat.color : 'transparent'}`, cursor: 'pointer', transition: 'all 0.15s' }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 9, background: cat.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PelasIcon name={cat.icon} size={14} color={cat.color}/>
+                    </div>
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 500, color: selected ? t.text : t.text2 }}>{cat.label}</div>
+                    <div style={{ width: 20, height: 20, borderRadius: 10, background: selected ? cat.color : t.surface2, border: `1.5px solid ${selected ? cat.color : t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
+                      {selected && <PelasIcon name="check" size={11} color="#fff" strokeWidth={2.5}/>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Color */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 8 }}>Color</div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -876,6 +954,127 @@ const AddGoalSheet = ({ theme, initial, onSave, onClose }) => {
   );
 };
 
+// ── Add Goal Transaction Sheet ─────────────────────────────────────────────────
+
+const AddGoalTransactionSheet = ({ theme, goal, onSave, onClose }) => {
+  const t = T(theme);
+  const [amount, setAmount] = useState('0');
+  const [account, setAccount] = useState(PELAS_ACCOUNTS[1]);
+  const [note, setNote] = useState('');
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  const press = (k) => {
+    if (k === '⌫') { setAmount(a => a.length > 1 ? a.slice(0, -1) : '0'); return; }
+    if (k === ',') { if (!amount.includes(',')) setAmount(a => a + ','); return; }
+    setAmount(a => a === '0' ? k : a + k);
+  };
+
+  const numVal = parseFloat(amount.replace(',', '.')) || 0;
+
+  const handleSave = () => {
+    if (numVal <= 0) return;
+    const now = new Date();
+    onSave({
+      id: 'gt' + Date.now(),
+      goalId: goal.id,
+      name: note.trim() || 'Aportación a meta',
+      amount: numVal,
+      account: account.name,
+      date: 'Hoy',
+      time: now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+    });
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '14px 22px 28px', animation: 'slideUp 0.25s ease-out', maxHeight: '92%', overflowY: 'auto' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>Nueva aportación</div>
+          <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <PelasIcon name="x" size={15} color={t.text2}/>
+          </div>
+        </div>
+
+        {/* Goal tag */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: goal.color + '18', border: `1px solid ${goal.color}44`, borderRadius: 14, padding: '10px 14px', marginBottom: 18 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: goal.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <PelasIcon name={goal.icon} size={15} color={goal.color}/>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 10.5, color: t.text2 }}>Meta asociada</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: goal.color }}>{goal.label}</div>
+          </div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'rgba(63,185,132,0.15)', borderRadius: 8, padding: '3px 8px' }}>
+            <PelasIcon name="arrow-down" size={11} color={t.positive}/>
+            <span style={{ fontSize: 11, fontWeight: 600, color: t.positive }}>Ingreso</span>
+          </div>
+        </div>
+
+        {/* Amount */}
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 4 }}>Importe</div>
+          <div style={{ fontSize: 44, fontWeight: 600, letterSpacing: -1.6, color: t.positive, display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 6 }}>
+            <span style={{ fontSize: 28, opacity: 0.7 }}>+</span>
+            <span>{amount}</span>
+            <span style={{ fontSize: 22, color: t.text2, fontWeight: 500 }}>€</span>
+          </div>
+        </div>
+
+        {/* Account picker */}
+        <Card theme={theme} padding={0} radius={14} style={{ marginBottom: 12, overflow: 'hidden' }}>
+          <div onClick={() => setAccountOpen(o => !o)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', cursor: 'pointer' }}>
+            <div style={{ fontSize: 11, color: t.text2, width: 60, flexShrink: 0 }}>Cuenta</div>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: account.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name={account.icon} size={14} color={account.color}/>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500 }}>{account.name}</div>
+              <div style={{ fontSize: 11, color: t.text2 }}>{account.bank}</div>
+            </div>
+            <PelasIcon name="chevron-right" size={15} color={t.text2}/>
+          </div>
+          {accountOpen && (
+            <div style={{ borderTop: `1px solid ${t.border}`, padding: 8 }}>
+              {PELAS_ACCOUNTS.map(a => (
+                <div key={a.id} onClick={() => { setAccount(a); setAccountOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, borderRadius: 10, cursor: 'pointer', background: account.id === a.id ? t.accentSoft : 'transparent' }}>
+                  <div style={{ width: 26, height: 26, borderRadius: 8, background: a.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PelasIcon name={a.icon} size={13} color={a.color}/>
+                  </div>
+                  <div style={{ flex: 1, fontSize: 13 }}>{a.name}</div>
+                  <div style={{ fontSize: 11, color: t.text2 }}>{a.balance.toFixed(2)} €</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Note */}
+        <input
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Añadir nota (opcional)"
+          style={{ width: '100%', boxSizing: 'border-box', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 13, padding: '13px 14px', fontSize: 13, color: t.text, outline: 'none', fontFamily: 'inherit', marginBottom: 12, display: 'block' }}
+        />
+
+        {/* Numpad */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 14 }}>
+          {['1','2','3','4','5','6','7','8','9',',','0','⌫'].map(k => (
+            <div key={k} onClick={() => press(k)} style={{ padding: '12px 0', textAlign: 'center', borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, fontSize: 18, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>{k}</div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleSave}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: numVal > 0 ? t.positive : t.surface2, color: numVal > 0 ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+        >
+          Guardar aportación
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ── Goals Screen ───────────────────────────────────────────────────────────────
 
 export const GoalsScreen = ({ theme, onBack }) => {
@@ -883,93 +1082,190 @@ export const GoalsScreen = ({ theme, onBack }) => {
   const [goals, setGoals] = useState(PELAS_GOALS);
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [selectedGoalId, setSelectedGoalId] = useState(null);
+  const [goalTxs, setGoalTxs] = useState([]);
+  const [showAddTx, setShowAddTx] = useState(false);
 
   const totalSaved  = goals.reduce((s, g) => s + g.saved, 0);
   const totalTarget = goals.reduce((s, g) => s + g.target, 0);
+
+  const currentGoal = selectedGoalId ? goals.find(g => g.id === selectedGoalId) : null;
+  const currentTxs  = currentGoal ? goalTxs.filter(tx => tx.goalId === currentGoal.id) : [];
 
   const handleSave = (g) => {
     setGoals(prev => prev.some(x => x.id === g.id) ? prev.map(x => x.id === g.id ? g : x) : [...prev, g]);
     setShowAdd(false); setEditItem(null);
   };
-
-  const handleDelete = (id) => setGoals(prev => prev.filter(x => x.id !== id));
+  const handleDelete = (id) => { setGoals(prev => prev.filter(x => x.id !== id)); setSelectedGoalId(null); };
+  const handleAddTx = (tx) => {
+    setGoalTxs(prev => [tx, ...prev]);
+    setGoals(prev => prev.map(g => g.id === tx.goalId ? { ...g, saved: parseFloat((g.saved + tx.amount).toFixed(2)) } : g));
+    setShowAddTx(false);
+  };
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
       <div style={{ overflowY: 'auto', height: '100%' }}>
-        <PelasHeader theme={theme} title="Mis metas"
-          onBack={onBack}
-          action={<div onClick={() => setShowAdd(true)} style={{ fontSize: 13, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>+ Nueva</div>}
-        />
-        <div style={{ padding: '0 22px 100px' }}>
 
-          {/* Resumen global */}
-          {goals.length > 0 && (
-            <Card theme={theme} padding={18} radius={20} style={{ marginBottom: 20, background: theme === 'dark' ? 'linear-gradient(140deg,#0B2A1F 0%,#1A1A28 80%)' : 'linear-gradient(140deg,#E0FFF0 0%,#FFFFFF 80%)', border: 'none' }}>
-              <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>Total ahorrado</div>
-              <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, color: t.positive }}>
-                {totalSaved.toLocaleString('es-ES')} €
-              </div>
-              <div style={{ fontSize: 11.5, color: t.text2, marginTop: 4 }}>
-                de {totalTarget.toLocaleString('es-ES')} € en {goals.length} meta{goals.length !== 1 ? 's' : ''}
-              </div>
-              <div style={{ width: '100%', height: 6, background: t.surface2, borderRadius: 3, overflow: 'hidden', marginTop: 14 }}>
-                <div style={{ width: `${Math.min(100, Math.round((totalSaved / totalTarget) * 100))}%`, height: '100%', borderRadius: 3, background: t.positive }}/>
-              </div>
-            </Card>
-          )}
-
-          {/* Lista de metas */}
-          {goals.map(g => {
-            const pct = g.target > 0 ? Math.round((g.saved / g.target) * 100) : 0;
-            const left = g.target - g.saved;
-            return (
-              <Card key={g.id} theme={theme} padding={16} radius={18} style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 14, background: g.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <PelasIcon name={g.icon} size={20} color={g.color}/>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{g.label}</div>
-                    <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>{g.due}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: g.color }}>{pct}%</div>
-                      <div style={{ fontSize: 10.5, color: t.text2 }}>faltan {left.toLocaleString('es-ES')} €</div>
-                    </div>
-                    <div onClick={() => setEditItem(g)} style={{ width: 30, height: 30, borderRadius: 9, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                      <PelasIcon name="more" size={14} color={t.text2}/>
-                    </div>
-                  </div>
+        {currentGoal ? (
+          /* ── Detail view ── */
+          <>
+            <PelasHeader
+              theme={theme}
+              title={currentGoal.label}
+              onBack={() => setSelectedGoalId(null)}
+              action={
+                <div onClick={() => setEditItem(currentGoal)} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <PelasIcon name="more" size={16} color={t.text2}/>
                 </div>
-                <Progress value={pct} color={g.color} track={t.surface2} height={6}/>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: t.text2 }}>
-                  <span>{g.saved.toLocaleString('es-ES')} € ahorrados</span>
-                  <span>objetivo {g.target.toLocaleString('es-ES')} €</span>
-                </div>
-              </Card>
-            );
-          })}
+              }
+            />
+            <div style={{ padding: '0 22px 100px' }}>
 
-          {goals.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: t.text2 }}>
-              <div style={{ fontSize: 28, marginBottom: 10 }}>🎯</div>
-              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>Sin metas todavía</div>
-              <div style={{ fontSize: 12 }}>Crea tu primera meta de ahorro</div>
+              {/* Hero card */}
+              {(() => {
+                const pct = currentGoal.target > 0 ? Math.min(100, Math.round((currentGoal.saved / currentGoal.target) * 100)) : 0;
+                const left = currentGoal.target - currentGoal.saved;
+                return (
+                  <Card theme={theme} padding={20} radius={22} style={{ marginBottom: 18, background: theme === 'dark' ? `linear-gradient(140deg,${currentGoal.color}18 0%,rgba(0,0,0,0) 100%)` : `linear-gradient(140deg,${currentGoal.color}0D 0%,#ffffff 100%)` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
+                      <div style={{ width: 52, height: 52, borderRadius: 17, background: currentGoal.color + '22', border: `2px solid ${currentGoal.color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <PelasIcon name={currentGoal.icon} size={24} color={currentGoal.color}/>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 11, color: t.text2, marginBottom: 2 }}>Objetivo · {currentGoal.due}</div>
+                        <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: -0.5, color: currentGoal.color }}>{currentGoal.saved.toLocaleString('es-ES')} €</div>
+                        <div style={{ fontSize: 12, color: t.text2 }}>de {currentGoal.target.toLocaleString('es-ES')} €</div>
+                      </div>
+                      <div style={{ fontSize: 30, fontWeight: 700, color: currentGoal.color }}>{pct}%</div>
+                    </div>
+                    <Progress value={pct} color={currentGoal.color} track={t.surface2} height={8}/>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 11, color: t.text2 }}>
+                      <span>{currentGoal.saved.toLocaleString('es-ES')} € ahorrados</span>
+                      <span>faltan {left.toLocaleString('es-ES')} €</span>
+                    </div>
+                  </Card>
+                );
+              })()}
+
+              {/* Transactions */}
+              <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>
+                Aportaciones ({currentTxs.length})
+              </div>
+
+              {currentTxs.length === 0 ? (
+                <Card theme={theme} padding={28} radius={18}>
+                  <div style={{ textAlign: 'center', color: t.text2 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 16, background: currentGoal.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                      <PelasIcon name="plus" size={22} color={currentGoal.color}/>
+                    </div>
+                    <div style={{ fontSize: 13.5, fontWeight: 500, marginBottom: 4 }}>Sin aportaciones aún</div>
+                    <div style={{ fontSize: 12 }}>Añade tu primera aportación a esta meta</div>
+                  </div>
+                </Card>
+              ) : (
+                <Card theme={theme} padding={6} radius={18}>
+                  {currentTxs.map((tx, i) => (
+                    <div key={tx.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 10px', borderBottom: i < currentTxs.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 12, background: currentGoal.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <PelasIcon name={currentGoal.icon} size={16} color={currentGoal.color}/>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 500 }}>{tx.name}</div>
+                        <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>{tx.date} · {tx.time} · {tx.account}</div>
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: t.positive }}>
+                        +{tx.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+                      </div>
+                    </div>
+                  ))}
+                </Card>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        ) : (
+          /* ── List view ── */
+          <>
+            <PelasHeader theme={theme} title="Mis metas"
+              onBack={onBack}
+              action={<div onClick={() => setShowAdd(true)} style={{ fontSize: 13, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>+ Nueva</div>}
+            />
+            <div style={{ padding: '0 22px 100px' }}>
+
+              {goals.length > 0 && (
+                <Card theme={theme} padding={18} radius={20} style={{ marginBottom: 20, background: theme === 'dark' ? 'linear-gradient(140deg,#0B2A1F 0%,#1A1A28 80%)' : 'linear-gradient(140deg,#E0FFF0 0%,#FFFFFF 80%)', border: 'none' }}>
+                  <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>Total ahorrado</div>
+                  <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, color: t.positive }}>{totalSaved.toLocaleString('es-ES')} €</div>
+                  <div style={{ fontSize: 11.5, color: t.text2, marginTop: 4 }}>de {totalTarget.toLocaleString('es-ES')} € en {goals.length} meta{goals.length !== 1 ? 's' : ''}</div>
+                  <div style={{ width: '100%', height: 6, background: t.surface2, borderRadius: 3, overflow: 'hidden', marginTop: 14 }}>
+                    <div style={{ width: `${Math.min(100, Math.round((totalSaved / totalTarget) * 100))}%`, height: '100%', borderRadius: 3, background: t.positive }}/>
+                  </div>
+                </Card>
+              )}
+
+              {goals.map(g => {
+                const pct = g.target > 0 ? Math.round((g.saved / g.target) * 100) : 0;
+                const left = g.target - g.saved;
+                const txCount = goalTxs.filter(tx => tx.goalId === g.id).length;
+                return (
+                  <Card key={g.id} theme={theme} padding={16} radius={18} style={{ marginBottom: 10, cursor: 'pointer' }} onClick={() => setSelectedGoalId(g.id)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 14, background: g.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <PelasIcon name={g.icon} size={20} color={g.color}/>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 500 }}>{g.label}</div>
+                        <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>
+                          {g.due}{txCount > 0 ? ` · ${txCount} aportación${txCount !== 1 ? 'es' : ''}` : ''}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 600, color: g.color }}>{pct}%</div>
+                          <div style={{ fontSize: 10.5, color: t.text2 }}>faltan {left.toLocaleString('es-ES')} €</div>
+                        </div>
+                        <div onClick={e => { e.stopPropagation(); setEditItem(g); }} style={{ width: 30, height: 30, borderRadius: 9, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <PelasIcon name="more" size={14} color={t.text2}/>
+                        </div>
+                      </div>
+                    </div>
+                    <Progress value={pct} color={g.color} track={t.surface2} height={6}/>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 11, color: t.text2 }}>
+                      <span>{g.saved.toLocaleString('es-ES')} € ahorrados</span>
+                      <span>objetivo {g.target.toLocaleString('es-ES')} €</span>
+                    </div>
+                  </Card>
+                );
+              })}
+
+              {goals.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: t.text2 }}>
+                  <div style={{ fontSize: 28, marginBottom: 10 }}>🎯</div>
+                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>Sin metas todavía</div>
+                  <div style={{ fontSize: 12 }}>Crea tu primera meta de ahorro</div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* FAB */}
-      <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.positive, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(63,185,132,0.35)' }}>
-        <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.6}/>
-        Nueva meta
-      </div>
+      {currentGoal ? (
+        <div onClick={() => setShowAddTx(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: currentGoal.color, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: `0 4px 20px ${currentGoal.color}55` }}>
+          <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.6}/>
+          Añadir aportación
+        </div>
+      ) : (
+        <div onClick={() => setShowAdd(true)} style={{ position: 'absolute', bottom: 24, right: 22, display: 'flex', alignItems: 'center', gap: 8, background: t.positive, color: '#fff', borderRadius: 28, padding: '14px 22px', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 20px rgba(63,185,132,0.35)' }}>
+          <PelasIcon name="plus" size={16} color="#fff" strokeWidth={2.6}/>
+          Nueva meta
+        </div>
+      )}
 
-      {showAdd  && <AddGoalSheet theme={theme} onSave={handleSave} onClose={() => setShowAdd(false)}/>}
-      {editItem && <AddGoalSheet theme={theme} initial={editItem} onSave={handleSave} onClose={() => setEditItem(null)}/>}
+      {showAdd   && <AddGoalSheet theme={theme} onSave={handleSave} onClose={() => setShowAdd(false)}/>}
+      {editItem  && <AddGoalSheet theme={theme} initial={editItem} onSave={handleSave} onClose={() => setEditItem(null)}/>}
+      {showAddTx && currentGoal && <AddGoalTransactionSheet theme={theme} goal={currentGoal} onSave={handleAddTx} onClose={() => setShowAddTx(false)}/>}
     </div>
   );
 };
@@ -1099,6 +1395,520 @@ export const CategoryDetailScreen = ({ theme, cat, onBack, onNavigate }) => {
               {i < txs.length - 1 && <div style={{ height: 1, background: t.border, margin: '2px 0' }}/>}
             </div>
           ))}
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+// ── Personal Data ─────────────────────────────────────────────────────────────
+
+export const PersonalDataScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [form, setForm] = useState({ name: 'Marta Bayón', email: 'marta.bayon@correo.es', phone: '+34 612 345 678' });
+  const [saved, setSaved] = useState(false);
+  const set = (k, v) => { setForm(s => ({ ...s, [k]: v })); setSaved(false); };
+
+  const fields = [
+    { label: 'Nombre completo', key: 'name', placeholder: 'Tu nombre', icon: 'user' },
+    { label: 'Email', key: 'email', placeholder: 'correo@ejemplo.com', icon: 'mail' },
+    { label: 'Teléfono', key: 'phone', placeholder: '+34 600 000 000', icon: 'send' },
+  ];
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <PelasHeader theme={theme} title="Datos personales" onBack={onBack}/>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+          <div style={{ position: 'relative', marginBottom: 10 }}>
+            <div style={{ width: 80, height: 80, borderRadius: 40, background: 'linear-gradient(135deg,#0066FF,#7C5CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 26 }}>MB</div>
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: 26, height: 26, borderRadius: 13, background: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${t.bg}` }}>
+              <PelasIcon name="edit" size={12} color="#fff"/>
+            </div>
+          </div>
+          <div style={{ fontSize: 12.5, color: t.accent, fontWeight: 500, cursor: 'pointer' }}>Cambiar foto</div>
+        </div>
+        {fields.map(field => (
+          <div key={field.key} style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>{field.label.toUpperCase()}</div>
+            <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 14, padding: '0 14px', height: 50, gap: 10 }}>
+              <PelasIcon name={field.icon} size={16} color={t.text2}/>
+              <input
+                value={form[field.key]}
+                onChange={e => set(field.key, e.target.value)}
+                placeholder={field.placeholder}
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: '12px 22px 28px', flexShrink: 0 }}>
+        {saved && <div style={{ textAlign: 'center', fontSize: 12, color: t.positive, marginBottom: 10, fontWeight: 500 }}>Cambios guardados correctamente</div>}
+        <button
+          onClick={() => setSaved(true)}
+          style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+        >
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ── Security ──────────────────────────────────────────────────────────────────
+
+const PinModal = ({ theme, onClose }) => {
+  const t = T(theme);
+  const [step, setStep] = useState('current');
+  const [pins, setPins] = useState({ current: '', new: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [done, setDone] = useState(false);
+
+  const labels = { current: 'PIN actual', new: 'Nuevo PIN (4 dígitos)', confirm: 'Confirmar nuevo PIN' };
+  const current = pins[step] || '';
+
+  const handleDigit = (d) => {
+    if (current.length >= 4) return;
+    const next = current + d;
+    setPins(s => ({ ...s, [step]: next }));
+    setError('');
+    if (next.length === 4) {
+      setTimeout(() => {
+        if (step === 'current') setStep('new');
+        else if (step === 'new') setStep('confirm');
+        else {
+          if (pins.new !== next) { setError('Los PINs no coinciden'); setPins(s => ({ ...s, confirm: '' })); }
+          else setDone(true);
+        }
+      }, 200);
+    }
+  };
+
+  const handleDelete = () => { setPins(s => ({ ...s, [step]: s[step].slice(0, -1) })); setError(''); };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '20px 22px 32px', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 20px' }}/>
+        {done ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 28, background: 'rgba(63,185,132,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <PelasIcon name="check" size={28} color={t.positive} strokeWidth={2.5}/>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>PIN actualizado</div>
+            <div style={{ fontSize: 13, color: t.text2, marginBottom: 24 }}>Tu nuevo PIN ha sido guardado correctamente</div>
+            <button onClick={onClose} style={{ width: '100%', height: 50, borderRadius: 25, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ textAlign: 'center', marginBottom: 24 }}>
+              <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>Cambiar PIN</div>
+              <div style={{ fontSize: 13, color: t.text2 }}>{labels[step]}</div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 8 }}>
+              {[0,1,2,3].map(i => (
+                <div key={i} style={{ width: 14, height: 14, borderRadius: 7, background: current.length > i ? t.accent : t.surface2, border: `2px solid ${current.length > i ? t.accent : t.border}`, transition: 'all 0.15s' }}/>
+              ))}
+            </div>
+            {error && <div style={{ textAlign: 'center', fontSize: 12, color: t.negative, marginBottom: 6 }}>{error}</div>}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 20 }}>
+              {['1','2','3','4','5','6','7','8','9','','0','⌫'].map((d, i) => (
+                <div key={i} onClick={() => d === '⌫' ? handleDelete() : d ? handleDigit(d) : null}
+                  style={{ height: 56, borderRadius: 16, background: d === '' ? 'transparent' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: d === '⌫' ? 20 : 22, fontWeight: 600, cursor: d ? 'pointer' : 'default', color: t.text, userSelect: 'none' }}>
+                  {d}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const PasswordModal = ({ theme, onClose }) => {
+  const t = T(theme);
+  const [form, setForm] = useState({ current: '', new: '', confirm: '' });
+  const [show, setShow] = useState({ current: false, new: false, confirm: false });
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+  const set = (k, v) => { setForm(s => ({ ...s, [k]: v })); setError(''); };
+  const toggleShow = k => setShow(s => ({ ...s, [k]: !s[k] }));
+
+  const handleSave = () => {
+    if (!form.current || !form.new) { setError('Rellena todos los campos'); return; }
+    if (form.new.length < 6) { setError('Mínimo 6 caracteres'); return; }
+    if (form.new !== form.confirm) { setError('Las contraseñas no coinciden'); return; }
+    setDone(true);
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', padding: '20px 22px 32px', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 20px' }}/>
+        {done ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <div style={{ width: 56, height: 56, borderRadius: 28, background: 'rgba(63,185,132,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+              <PelasIcon name="check" size={28} color={t.positive} strokeWidth={2.5}/>
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Contraseña actualizada</div>
+            <div style={{ fontSize: 13, color: t.text2, marginBottom: 24 }}>Tu contraseña ha sido cambiada correctamente</div>
+            <button onClick={onClose} style={{ width: '100%', height: 50, borderRadius: 25, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 20 }}>Cambiar contraseña</div>
+            {[{ label: 'Contraseña actual', key: 'current' }, { label: 'Nueva contraseña', key: 'new' }, { label: 'Confirmar nueva', key: 'confirm' }].map(f => (
+              <div key={f.key} style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>{f.label.toUpperCase()}</div>
+                <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48, gap: 8 }}>
+                  <PelasIcon name="lock" size={15} color={t.text2}/>
+                  <input
+                    type={show[f.key] ? 'text' : 'password'}
+                    value={form[f.key]}
+                    onChange={e => set(f.key, e.target.value)}
+                    placeholder="••••••••"
+                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}
+                  />
+                  <div onClick={() => toggleShow(f.key)} style={{ cursor: 'pointer' }}>
+                    <PelasIcon name={show[f.key] ? 'eye-off' : 'eye'} size={16} color={t.text2}/>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {error && <div style={{ fontSize: 12, color: t.negative, marginBottom: 10 }}>{error}</div>}
+            <button onClick={handleSave} style={{ width: '100%', height: 50, borderRadius: 25, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 8 }}>
+              Actualizar contraseña
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const SecurityScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [biometric, setBiometric] = useState(true);
+  const [showPin, setShowPin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const Toggle = ({ value, onChange }) => (
+    <div onClick={() => onChange(!value)} style={{ width: 44, height: 24, borderRadius: 12, background: value ? t.accent : t.surface2, border: `1px solid ${value ? t.accent : t.border}`, position: 'relative', cursor: 'pointer', transition: 'all 0.25s', flexShrink: 0 }}>
+      <div style={{ position: 'absolute', top: 2, left: value ? 22 : 2, width: 18, height: 18, borderRadius: 9, background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.25)', transition: 'left 0.25s' }}/>
+    </div>
+  );
+
+  return (
+    <div style={{ position: 'relative', height: '100%' }}>
+      <div style={{ overflowY: 'auto', height: '100%' }}>
+        <PelasHeader theme={theme} title="Seguridad" onBack={onBack}/>
+        <div style={{ padding: '0 22px 32px' }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>PIN</div>
+          <Card theme={theme} padding={6} radius={18} style={{ marginBottom: 18 }}>
+            <div onClick={() => setShowPin(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 10px', cursor: 'pointer' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="lock" size={16} color={t.accent}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>Modificar PIN</div>
+                <div style={{ fontSize: 11, color: t.text2 }}>Cambia tu código de 4 dígitos</div>
+              </div>
+              <PelasIcon name="chevron-right" size={16} color={t.text2}/>
+            </div>
+          </Card>
+
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>Biometría</div>
+          <Card theme={theme} padding={6} radius={18} style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 10px' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="face" size={16} color={t.accent}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>Huella digital</div>
+                <div style={{ fontSize: 11, color: t.text2 }}>{biometric ? 'Activada' : 'Desactivada'}</div>
+              </div>
+              <Toggle value={biometric} onChange={setBiometric}/>
+            </div>
+          </Card>
+
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>Contraseña</div>
+          <Card theme={theme} padding={6} radius={18} style={{ marginBottom: 20 }}>
+            <div onClick={() => setShowPassword(true)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 10px', cursor: 'pointer' }}>
+              <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name="eye" size={16} color={t.accent}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500 }}>Actualizar contraseña</div>
+                <div style={{ fontSize: 11, color: t.text2 }}>Cambia tu contraseña de acceso</div>
+              </div>
+              <PelasIcon name="chevron-right" size={16} color={t.text2}/>
+            </div>
+          </Card>
+
+          <Card theme={theme} padding={14} radius={16} style={{ background: theme === 'dark' ? 'rgba(0,102,255,0.07)' : 'rgba(0,102,255,0.05)', border: '1px solid rgba(0,102,255,0.15)' }}>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <PelasIcon name="shield" size={16} color={t.accent}/>
+              <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>
+                Tu cuenta está protegida con cifrado de extremo a extremo. Nunca compartimos tu información de seguridad.
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
+      {showPin && <PinModal theme={theme} onClose={() => setShowPin(false)}/>}
+      {showPassword && <PasswordModal theme={theme} onClose={() => setShowPassword(false)}/>}
+    </div>
+  );
+};
+
+// ── Profile Categories ────────────────────────────────────────────────────────
+
+const PROFILE_CAT_ICONS = ['cart', 'heart', 'car', 'home', 'laptop', 'plane', 'bag', 'play', 'book', 'shield', 'globe', 'send'];
+const PROFILE_CAT_COLORS = ['#0066FF','#7C5CFF','#FF8A4C','#3FB984','#FFC234','#E16364','#5B8DEF','#FF6B9D'];
+
+const DEFAULT_EXPENSE_CATS = [
+  { id: 'ec1', label: 'Alimentación', icon: 'cart', color: '#FF8A4C' },
+  { id: 'ec2', label: 'Transporte', icon: 'car', color: '#0066FF' },
+  { id: 'ec3', label: 'Ocio', icon: 'play', color: '#7C5CFF' },
+  { id: 'ec4', label: 'Salud', icon: 'heart', color: '#E16364' },
+  { id: 'ec5', label: 'Hogar', icon: 'home', color: '#5B8DEF' },
+];
+
+const DEFAULT_INCOME_CATS = [
+  { id: 'ic1', label: 'Nómina', icon: 'send', color: '#3FB984' },
+  { id: 'ic2', label: 'Freelance', icon: 'laptop', color: '#0066FF' },
+  { id: 'ic3', label: 'Inversiones', icon: 'trending', color: '#FFC234' },
+];
+
+const AddCategorySheet = ({ theme, type, initial, onSave, onClose }) => {
+  const t = T(theme);
+  const isEdit = !!initial;
+  const [form, setForm] = useState({ label: initial?.label || '', icon: initial?.icon || PROFILE_CAT_ICONS[0], color: initial?.color || PROFILE_CAT_COLORS[0] });
+  const set = (k, v) => setForm(s => ({ ...s, [k]: v }));
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', animation: 'slideUp 0.25s ease-out' }}>
+        <div style={{ padding: '14px 22px 0' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18 }}>
+            <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>{isEdit ? 'Editar categoría' : `Nueva categoría de ${type === 'expense' ? 'gasto' : 'ingreso'}`}</div>
+            <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <PelasIcon name="x" size={15} color={t.text2}/>
+            </div>
+          </div>
+        </div>
+        <div style={{ padding: '0 22px 28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 18, background: form.color + '22', border: `2px solid ${form.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name={form.icon} size={24} color={form.color}/>
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>NOMBRE</div>
+            <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48 }}>
+              <input value={form.label} onChange={e => set('label', e.target.value)} placeholder="Nombre de la categoría"
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 8 }}>ICONO</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {PROFILE_CAT_ICONS.map(ic => (
+                <div key={ic} onClick={() => set('icon', ic)} style={{ width: 40, height: 40, borderRadius: 11, background: form.icon === ic ? form.color + '22' : t.surface2, border: `1.5px solid ${form.icon === ic ? form.color : 'transparent'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <PelasIcon name={ic} size={18} color={form.icon === ic ? form.color : t.text2}/>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 8 }}>COLOR</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {PROFILE_CAT_COLORS.map(c => (
+                <div key={c} onClick={() => set('color', c)} style={{ flex: 1, height: 30, borderRadius: 8, background: c, cursor: 'pointer', border: form.color === c ? '2px solid #fff' : '2px solid transparent', boxShadow: form.color === c ? `0 0 0 2px ${c}` : 'none', transition: 'box-shadow 0.15s' }}/>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={() => { if (form.label.trim()) onSave({ id: initial?.id || ('cat' + Date.now()), ...form }); }}
+            style={{ width: '100%', height: 50, borderRadius: 25, border: 'none', background: form.label.trim() ? t.accent : t.surface2, color: form.label.trim() ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            {isEdit ? 'Guardar cambios' : 'Crear categoría'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const ProfileCategoriesScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [tab, setTab] = useState('expense');
+  const [expCats, setExpCats] = useState(DEFAULT_EXPENSE_CATS);
+  const [incCats, setIncCats] = useState(DEFAULT_INCOME_CATS);
+  const [showAdd, setShowAdd] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+
+  const cats = tab === 'expense' ? expCats : incCats;
+  const setCats = tab === 'expense' ? setExpCats : setIncCats;
+
+  const handleSave = (cat) => {
+    setCats(prev => prev.some(c => c.id === cat.id) ? prev.map(c => c.id === cat.id ? cat : c) : [...prev, cat]);
+    setShowAdd(false); setEditItem(null);
+  };
+
+  const handleDelete = (id) => setCats(prev => prev.filter(c => c.id !== id));
+
+  return (
+    <div style={{ position: 'relative', height: '100%' }}>
+      <div style={{ overflowY: 'auto', height: '100%' }}>
+        <PelasHeader theme={theme} title="Categorías"
+          onBack={onBack}
+          action={<div onClick={() => setShowAdd(true)} style={{ fontSize: 13, fontWeight: 600, color: t.accent, cursor: 'pointer' }}>+ Nueva</div>}
+        />
+        <div style={{ padding: '0 22px 32px' }}>
+          <div style={{ display: 'flex', background: t.surface2, borderRadius: 14, padding: 4, marginBottom: 20 }}>
+            {[{ id: 'expense', label: 'Gastos' }, { id: 'income', label: 'Ingresos' }].map(tp => (
+              <div key={tp.id} onClick={() => setTab(tp.id)} style={{ flex: 1, height: 36, borderRadius: 11, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: tab === tp.id ? t.bg : 'transparent', color: tab === tp.id ? t.accent : t.text2, transition: 'all 0.2s', boxShadow: tab === tp.id ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>
+                {tp.label}
+              </div>
+            ))}
+          </div>
+          {cats.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: t.text2 }}>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>{tab === 'expense' ? '📂' : '💰'}</div>
+              <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>Sin categorías</div>
+              <div style={{ fontSize: 12 }}>Crea tu primera categoría de {tab === 'expense' ? 'gasto' : 'ingreso'}</div>
+            </div>
+          ) : (
+            <Card theme={theme} padding={6} radius={18}>
+              {cats.map((cat, i) => (
+                <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 10px', borderBottom: i < cats.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: cat.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PelasIcon name={cat.icon} size={16} color={cat.color}/>
+                  </div>
+                  <div style={{ flex: 1, fontSize: 13.5, fontWeight: 500 }}>{cat.label}</div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <div onClick={() => setEditItem(cat)} style={{ width: 30, height: 30, borderRadius: 9, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <PelasIcon name="edit" size={13} color={t.text2}/>
+                    </div>
+                    <div onClick={() => handleDelete(cat.id)} style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(225,99,100,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <PelasIcon name="x" size={13} color={t.negative}/>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
+        </div>
+      </div>
+      {showAdd && <AddCategorySheet theme={theme} type={tab} onSave={handleSave} onClose={() => setShowAdd(false)}/>}
+      {editItem && <AddCategorySheet theme={theme} type={tab} initial={editItem} onSave={handleSave} onClose={() => setEditItem(null)}/>}
+    </div>
+  );
+};
+
+// ── Notification Settings ─────────────────────────────────────────────────────
+
+export const NotificationSettingsScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [settings, setSettings] = useState({ spending: true, transfers: true, budgets: true, goals: false, system: true, marketing: false });
+  const toggle = k => setSettings(s => ({ ...s, [k]: !s[k] }));
+
+  const Toggle = ({ value, onChange }) => (
+    <div onClick={onChange} style={{ width: 44, height: 24, borderRadius: 12, background: value ? t.accent : t.surface2, border: `1px solid ${value ? t.accent : t.border}`, position: 'relative', cursor: 'pointer', transition: 'all 0.25s', flexShrink: 0 }}>
+      <div style={{ position: 'absolute', top: 2, left: value ? 22 : 2, width: 18, height: 18, borderRadius: 9, background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.25)', transition: 'left 0.25s' }}/>
+    </div>
+  );
+
+  const groups = [
+    {
+      title: 'Actividad',
+      items: [
+        { key: 'spending', icon: 'arrow-up', label: 'Alertas de gasto', sub: 'Cuando superas los límites configurados' },
+        { key: 'transfers', icon: 'send', label: 'Nuevas transferencias', sub: 'Al recibir o enviar dinero' },
+        { key: 'budgets', icon: 'chart', label: 'Recordatorios de presupuesto', sub: 'Antes de alcanzar tu límite mensual' },
+        { key: 'goals', icon: 'goal', label: 'Actualizaciones de metas', sub: 'Progreso hacia tus objetivos de ahorro' },
+      ],
+    },
+    {
+      title: 'Sistema',
+      items: [
+        { key: 'system', icon: 'bell', label: 'Notificaciones del sistema', sub: 'Actualizaciones y avisos de seguridad' },
+        { key: 'marketing', icon: 'mail', label: 'Novedades y ofertas', sub: 'Nuevas funciones y promociones' },
+      ],
+    },
+  ];
+
+  return (
+    <div>
+      <PelasHeader theme={theme} title="Notificaciones" onBack={onBack}/>
+      <div style={{ padding: '0 22px 32px' }}>
+        {groups.map(g => (
+          <div key={g.title} style={{ marginBottom: 18 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>{g.title}</div>
+            <Card theme={theme} padding={6} radius={18}>
+              {g.items.map((item, i) => (
+                <div key={item.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 10px', borderBottom: i < g.items.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 12, background: settings[item.key] ? t.accent + '22' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <PelasIcon name={item.icon} size={15} color={settings[item.key] ? t.accent : t.text2}/>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{item.label}</div>
+                    <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>{item.sub}</div>
+                  </div>
+                  <Toggle value={settings[item.key]} onChange={() => toggle(item.key)}/>
+                </div>
+              ))}
+            </Card>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── Language ──────────────────────────────────────────────────────────────────
+
+const LANGUAGES = [
+  { code: 'es-ES', label: 'Español (España)', flag: '🇪🇸' },
+  { code: 'es-MX', label: 'Español (México)', flag: '🇲🇽' },
+  { code: 'en-GB', label: 'English (UK)', flag: '🇬🇧' },
+  { code: 'en-US', label: 'English (US)', flag: '🇺🇸' },
+  { code: 'fr-FR', label: 'Français', flag: '🇫🇷' },
+  { code: 'de-DE', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'pt-PT', label: 'Português', flag: '🇵🇹' },
+];
+
+export const LanguageScreen = ({ theme, onBack }) => {
+  const t = T(theme);
+  const [selected, setSelected] = useState('es-ES');
+
+  return (
+    <div>
+      <PelasHeader theme={theme} title="Idioma" onBack={onBack}/>
+      <div style={{ padding: '0 22px 32px' }}>
+        <Card theme={theme} padding={6} radius={18} style={{ marginBottom: 14 }}>
+          {LANGUAGES.map((lang, i) => (
+            <div key={lang.code} onClick={() => setSelected(lang.code)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 10px', borderBottom: i < LANGUAGES.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
+              <div style={{ fontSize: 22, width: 32, textAlign: 'center' }}>{lang.flag}</div>
+              <div style={{ flex: 1, fontSize: 13.5, fontWeight: selected === lang.code ? 600 : 400, color: selected === lang.code ? t.accent : t.text }}>{lang.label}</div>
+              {selected === lang.code && (
+                <div style={{ width: 22, height: 22, borderRadius: 11, background: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PelasIcon name="check" size={12} color="#fff" strokeWidth={2.5}/>
+                </div>
+              )}
+            </div>
+          ))}
+        </Card>
+        <Card theme={theme} padding={14} radius={14} style={{ background: theme === 'dark' ? 'rgba(255,194,52,0.07)' : 'rgba(255,194,52,0.06)', border: '1px solid rgba(255,194,52,0.2)' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <PelasIcon name="bell" size={15} color="#FFC234"/>
+            <div style={{ fontSize: 12, color: t.text2, lineHeight: 1.5 }}>
+              El cambio de idioma estará disponible próximamente. La interfaz aparecerá completamente traducida al idioma seleccionado.
+            </div>
+          </div>
         </Card>
       </div>
     </div>

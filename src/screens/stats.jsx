@@ -265,30 +265,6 @@ const WidgetStatsCombined = ({ theme, filters, onInfo }) => {
 
 // ── Widget: Tendencia diaria ───────────────────────────────────────────────────
 
-const WidgetStatsTrend = ({ theme, filters, onInfo }) => {
-  const t = T(theme);
-  const label = PERIOD_LABELS[filters.period] || 'Este mes';
-  return (
-    <div style={{ marginBottom: 18 }}>
-      <StatsWidgetTitle theme={theme} title="Tendencia de gasto" meta={label} onInfo={onInfo}/>
-      <Card theme={theme} padding={18} radius={22}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, color: t.text2 }}>Gasto medio diario</div>
-            <div style={{ fontSize: 22, fontWeight: 600 }}>61,42 € / día</div>
-          </div>
-          <div style={{ background: 'rgba(63,185,132,0.16)', color: t.positive, fontSize: 12, fontWeight: 600, padding: '5px 10px', borderRadius: 8 }}>−4,2%</div>
-        </div>
-        <div style={{ marginLeft: -8, marginRight: -8 }}>
-          <Sparkline data={PELAS_SERIES_30D} width={326} height={90} color={t.accent}/>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: t.text3, marginTop: 4 }}>
-          <span>1 abr</span><span>15 abr</span><span>30 abr</span>
-        </div>
-      </Card>
-    </div>
-  );
-};
 
 // ── Responsive mini sparkline (used in evolution widget) ─────────────────────
 
@@ -1550,7 +1526,6 @@ const STATS_WIDGET_LIBRARY = [
   { id: 'stats-recurring-annual', label: 'Gastos recurrentes anuales', icon: 'home', color: '#0066FF', enabled: true, component: WidgetStatsRecurringAnnual },
   { id: 'stats-budget-rate', label: 'Cumplimiento de presupuestos', icon: 'chart', color: '#3FB984', enabled: true, component: WidgetStatsBudgetRate },
   { id: 'stats-goals-rate', label: 'Tasa de éxito de metas', icon: 'goal', color: '#7C5CFF', enabled: true, component: WidgetStatsGoalsRate },
-  { id: 'stats-trend', label: 'Tendencia de gasto', icon: 'trending', color: '#FF8A4C', enabled: true, component: WidgetStatsTrend },
 ];
 
 const DEFAULT_STATS_WIDGETS = STATS_WIDGET_LIBRARY.map(widget => ({
@@ -1562,7 +1537,34 @@ const DEFAULT_STATS_WIDGETS = STATS_WIDGET_LIBRARY.map(widget => ({
 const WIDGET_COLORS = Object.fromEntries(STATS_WIDGET_LIBRARY.map(widget => [widget.id, widget.color]));
 const WIDGET_COMPONENTS = Object.fromEntries(STATS_WIDGET_LIBRARY.map(widget => [widget.id, widget.component]));
 
-const StatsConfigSheet = ({ theme, widgets, setWidgets, onClose }) => {
+// ── Views system ──────────────────────────────────────────────────────────────
+
+const VIEW_ICONS   = ['chart','home','plane','heart','trending','calendar','globe','bag','shield','goal','cart','people','wallet','bell','book'];
+const VIEW_COLORS  = ['#0066FF','#7C5CFF','#FF8A4C','#5B8DEF','#3FB984','#E16364','#FFC234','#A2A2A7'];
+
+const makeViewWidgets = (enabledIds) =>
+  DEFAULT_STATS_WIDGETS.map(w => ({ ...w, enabled: enabledIds.includes(w.id) }));
+
+const DEFAULT_VIEWS = [
+  {
+    id: 'v1', name: 'General', icon: 'chart', color: '#0066FF',
+    widgets: DEFAULT_STATS_WIDGETS,
+  },
+  {
+    id: 'v2', name: 'Gastos', icon: 'arrow-up', color: '#E16364',
+    widgets: makeViewWidgets(['stats-balance','stats-combined','stats-calendar','stats-budget-rate','stats-subscriptions','stats-recurring-annual']),
+  },
+  {
+    id: 'v3', name: 'Ahorros', icon: 'goal', color: '#3FB984',
+    widgets: makeViewWidgets(['stats-balance','stats-evolution','stats-savings','stats-goals-rate']),
+  },
+  {
+    id: 'v4', name: 'Viajes', icon: 'plane', color: '#FF8A4C',
+    widgets: makeViewWidgets(['stats-travel-heatmap','stats-national-heatmap','stats-combined','stats-calendar']),
+  },
+];
+
+const StatsConfigSheet = ({ theme, widgets, setWidgets, viewName, viewColor, onClose }) => {
   const t = T(theme);
   const dragIndex = useRef(null);
   const [dragOver, setDragOver] = useState(null);
@@ -1591,7 +1593,7 @@ const StatsConfigSheet = ({ theme, widgets, setWidgets, onClose }) => {
           <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 17, fontWeight: 600 }}>Personalizar estadísticas</div>
+              <div style={{ fontSize: 17, fontWeight: 600 }}>Widgets de "{viewName || 'esta vista'}"</div>
               <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>Activa, desactiva y arrastra para reordenar</div>
             </div>
             <div onClick={onClose} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -1620,6 +1622,232 @@ const StatsConfigSheet = ({ theme, widgets, setWidgets, onClose }) => {
         </div>
         <div style={{ padding: '14px 22px 22px', flexShrink: 0 }}>
           <button onClick={onClose} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Listo</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── View Editor Sheet ─────────────────────────────────────────────────────────
+
+const ViewEditorSheet = ({ theme, view, canDelete, onSave, onDelete, onBack }) => {
+  const t = T(theme);
+  const [name, setName]       = useState(view.name);
+  const [icon, setIcon]       = useState(view.icon);
+  const [color, setColor]     = useState(view.color);
+  const [widgets, setWidgets] = useState(view.widgets);
+
+  const toggleWidget = (id) => setWidgets(ws => ws.map(w => w.id === id ? { ...w, enabled: !w.enabled } : w));
+  const activeCount  = widgets.filter(w => w.enabled).length;
+  const valid        = name.trim().length > 0;
+
+  const handleSave = () => {
+    if (!valid) return;
+    onSave({ ...view, name: name.trim(), icon, color, widgets });
+  };
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '92%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
+
+        {/* Header */}
+        <div style={{ padding: '14px 22px 0', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <div onClick={onBack} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+              <PelasIcon name="arrow-left" size={15} color={t.text}/>
+            </div>
+            <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>{view.name ? `Editar "${view.name}"` : 'Nueva vista'}</div>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px' }}>
+
+          {/* Preview badge */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+            <div style={{ width: 64, height: 64, borderRadius: 22, background: color + '22', border: `2px solid ${color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name={icon} size={28} color={color}/>
+            </div>
+          </div>
+
+          {/* Name */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 6 }}>NOMBRE</div>
+            <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 14px', height: 48 }}>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="p. ej. Gastos mensuales"
+                style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}/>
+            </div>
+          </div>
+
+          {/* Icon picker */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 8 }}>ICONO</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {VIEW_ICONS.map(ic => (
+                <div key={ic} onClick={() => setIcon(ic)} style={{ width: 42, height: 42, borderRadius: 12, background: icon === ic ? color + '22' : t.surface2, border: `1.5px solid ${icon === ic ? color : 'transparent'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }}>
+                  <PelasIcon name={ic} size={18} color={icon === ic ? color : t.text2}/>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Color picker */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4, marginBottom: 8 }}>COLOR</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {VIEW_COLORS.map(c => (
+                <div key={c} onClick={() => setColor(c)} style={{ width: 36, height: 36, borderRadius: 10, background: c, cursor: 'pointer', border: color === c ? '2.5px solid #fff' : '2.5px solid transparent', boxShadow: color === c ? `0 0 0 2.5px ${c}` : 'none', transition: 'all 0.15s' }}/>
+              ))}
+            </div>
+          </div>
+
+          {/* Widget toggles */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.4 }}>WIDGETS EN ESTA VISTA</div>
+              <div style={{ fontSize: 11, color: t.text2 }}>{activeCount} activo{activeCount !== 1 ? 's' : ''}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {widgets.map(w => {
+                const wColor = WIDGET_COLORS[w.id] || t.accent;
+                return (
+                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', borderRadius: 14, background: w.enabled ? wColor + '0D' : t.surface2, border: `1px solid ${w.enabled ? wColor + '33' : 'transparent'}`, transition: 'all 0.18s' }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 9, background: wColor + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PelasIcon name={w.icon} size={13} color={wColor}/>
+                    </div>
+                    <div style={{ flex: 1, fontSize: 12.5, fontWeight: w.enabled ? 500 : 400, color: w.enabled ? t.text : t.text2 }}>{w.label}</div>
+                    <div onClick={() => toggleWidget(w.id)} style={{ width: 40, height: 22, borderRadius: 11, background: w.enabled ? wColor : t.surface2, border: `1px solid ${w.enabled ? wColor : t.border}`, position: 'relative', cursor: 'pointer', transition: 'all 0.22s', flexShrink: 0 }}>
+                      <div style={{ position: 'absolute', top: 3, left: w.enabled ? 20 : 3, width: 14, height: 14, borderRadius: 7, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', transition: 'left 0.22s' }}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
+          {canDelete && (
+            <div onClick={onDelete} style={{ textAlign: 'center', fontSize: 13, color: t.negative, fontWeight: 600, cursor: 'pointer', padding: '10px 0', marginBottom: 4 }}>
+              Eliminar esta vista
+            </div>
+          )}
+          <button onClick={handleSave} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: valid ? color : t.surface2, color: valid ? '#fff' : t.text2, fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+            {view.name ? 'Guardar cambios' : 'Crear vista'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── View Selector Sheet ───────────────────────────────────────────────────────
+
+const ViewSelectorSheet = ({ theme, views, activeViewId, onSelect, onChange, onClose }) => {
+  const t = T(theme);
+  const [editingView, setEditingView] = useState(null);
+
+  const handleSaveView = (updatedView) => {
+    if (views.find(v => v.id === updatedView.id)) {
+      onChange(views.map(v => v.id === updatedView.id ? updatedView : v));
+    } else {
+      onChange([...views, updatedView]);
+    }
+    setEditingView(null);
+  };
+
+  const handleDeleteView = (id) => {
+    const next = views.filter(v => v.id !== id);
+    onChange(next);
+    if (activeViewId === id) onSelect(next[0].id);
+    setEditingView(null);
+  };
+
+  const newViewTemplate = () => ({
+    id: 'v' + Date.now(),
+    name: '',
+    icon: 'chart',
+    color: '#0066FF',
+    widgets: DEFAULT_STATS_WIDGETS.map(w => ({ ...w, enabled: false })),
+  });
+
+  if (editingView) {
+    return (
+      <div style={{ position: 'absolute', inset: 0, zIndex: 50 }}>
+        <ViewEditorSheet
+          theme={theme}
+          view={editingView}
+          canDelete={views.length > 1 && !!views.find(v => v.id === editingView.id)}
+          onSave={handleSaveView}
+          onDelete={() => handleDeleteView(editingView.id)}
+          onBack={() => setEditingView(null)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '85%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
+
+        {/* Header */}
+        <div style={{ padding: '14px 22px 0', flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 17, fontWeight: 600 }}>Mis vistas</div>
+              <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>Organiza tus estadísticas por temática</div>
+            </div>
+            <div onClick={() => setEditingView(newViewTemplate())}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, background: t.accentSoft, border: `1px solid ${t.accent}33`, cursor: 'pointer' }}>
+              <PelasIcon name="plus" size={13} color={t.accent} strokeWidth={2.5}/>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: t.accent }}>Nueva vista</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Views list */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '4px 22px 8px' }}>
+          {views.map(v => {
+            const isActive   = v.id === activeViewId;
+            const activeCount = v.widgets.filter(w => w.enabled).length;
+            return (
+              <div key={v.id} onClick={() => { onSelect(v.id); onClose(); }}
+                style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 14px', marginBottom: 8, borderRadius: 18, background: isActive ? v.color + '14' : t.surface, border: `1.5px solid ${isActive ? v.color : t.border}`, cursor: 'pointer', transition: 'all 0.15s' }}>
+
+                {/* Icon */}
+                <div style={{ width: 42, height: 42, borderRadius: 14, background: v.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <PelasIcon name={v.icon} size={20} color={v.color}/>
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: isActive ? v.color : t.text }}>{v.name}</div>
+                  <div style={{ fontSize: 11, color: t.text2, marginTop: 1 }}>{activeCount} widget{activeCount !== 1 ? 's' : ''} activo{activeCount !== 1 ? 's' : ''}</div>
+                </div>
+
+                {/* Active check */}
+                {isActive && (
+                  <div style={{ width: 22, height: 22, borderRadius: 11, background: v.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <PelasIcon name="check" size={11} color="#fff" strokeWidth={2.5}/>
+                  </div>
+                )}
+
+                {/* Edit button */}
+                <div onClick={e => { e.stopPropagation(); setEditingView(v); }}
+                  style={{ width: 32, height: 32, borderRadius: 10, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                  <PelasIcon name="edit" size={13} color={t.text2}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '12px 22px 22px', flexShrink: 0 }}>
+          <button onClick={onClose} style={{ width: '100%', height: 50, borderRadius: 25, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Cerrar</button>
         </div>
       </div>
     </div>
@@ -2969,6 +3197,397 @@ const BalanceFilterDrawer = ({ theme, filters, onApply, onClose }) => {
   );
 };
 
+// ── Detail: Suscripciones ─────────────────────────────────────────────────────
+
+const DETAIL_SUBS = [
+  { name: 'Spotify',  plan: 'Premium',  amount: 10.99, color: '#1DB954', icon: 'play',    payments: [true,true,true,true,true,true,true,true,true,true,true,true] },
+  { name: 'Netflix',  plan: 'Estándar', amount: 12.99, color: '#E50914', icon: 'play',    payments: [true,true,false,true,true,true,true,true,true,true,true,true] },
+  { name: 'iCloud+',  plan: '2 TB',     amount:  9.99, color: '#5B8DEF', icon: 'refresh', payments: [null,null,null,null,true,true,true,true,true,true,true,true] },
+  { name: 'Notion',   plan: 'Plus',     amount:  9.50, color: '#A2A2A7', icon: 'book',    payments: [null,null,null,null,null,null,null,null,true,true,true,true] },
+  { name: 'YouTube',  plan: 'Premium',  amount: 13.99, color: '#FF0033', icon: 'play',    payments: [null,null,null,null,null,null,null,null,null,true,true,true] },
+];
+const HIST_MONTHS_12 = ['may','jun','jul','ago','sep','oct','nov','dic','ene','feb','mar','abr'];
+
+const WidgetSubscriptionsDetail = ({ theme }) => {
+  const t = T(theme);
+  const [period, setPeriod] = useState(6);
+  const months = HIST_MONTHS_12.slice(HIST_MONTHS_12.length - period);
+  const total = DETAIL_SUBS.reduce((s, sub) => s + sub.amount, 0);
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
+        {[
+          { label: 'Activas', value: `${DETAIL_SUBS.length}` },
+          { label: 'Este mes', value: `${total.toFixed(2)} €` },
+          { label: 'Al año', value: `${(total * 12).toFixed(0)} €` },
+        ].map(s => (
+          <div key={s.label} style={{ padding: '12px 10px', borderRadius: 14, background: t.surface, border: `1px solid ${t.border}`, textAlign: 'center' }}>
+            <div style={{ fontSize: 10, color: t.text2, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 700 }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
+        {[{ v: 3, l: '3 meses' }, { v: 6, l: '6 meses' }, { v: 12, l: '1 año' }].map(p => (
+          <div key={p.v} onClick={() => setPeriod(p.v)} style={{ padding: '6px 12px', borderRadius: 10, fontSize: 11.5, fontWeight: 600, cursor: 'pointer', background: period === p.v ? t.accent : t.surface2, color: period === p.v ? '#fff' : t.text2, transition: 'all 0.15s' }}>{p.l}</div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {DETAIL_SUBS.map(sub => {
+          const sliced = sub.payments.slice(sub.payments.length - period);
+          const paid = sliced.filter(p => p === true).length;
+          const failed = sliced.filter(p => p === false).length;
+          return (
+            <Card key={sub.name} theme={theme} padding={14} radius={18}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 12, background: sub.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <PelasIcon name={sub.icon} size={15} color={sub.color}/>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{sub.name} <span style={{ fontSize: 11, fontWeight: 400, color: t.text2 }}>{sub.plan}</span></div>
+                  <div style={{ fontSize: 11, color: t.text2 }}>{sub.amount.toFixed(2)} €/mes · {paid} pago{paid !== 1 ? 's' : ''} en el periodo</div>
+                </div>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>{(paid * sub.amount).toFixed(2)} €</div>
+                  {failed > 0 && <div style={{ fontSize: 10, color: t.negative, fontWeight: 600 }}>{failed} fallido{failed !== 1 ? 's' : ''}</div>}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end' }}>
+                {months.map((m, i) => {
+                  const p = sliced[i];
+                  return (
+                    <div key={m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                      <div style={{ width: '100%', height: 8, borderRadius: 3, background: p === null ? t.surface2 : p === true ? sub.color : t.negative, opacity: p === null ? 0.25 : 1, transition: 'background 0.2s' }}/>
+                      <div style={{ fontSize: 8.5, color: t.text3, textAlign: 'center' }}>{m}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ── Detail: Gastos recurrentes ────────────────────────────────────────────────
+
+const RECURRING_MONTHLY_HIST = [
+  { m: 'oct', v: 1361 }, { m: 'nov', v: 1388 }, { m: 'dic', v: 1402 },
+  { m: 'ene', v: 1269 }, { m: 'feb', v: 1269 }, { m: 'mar', v: 1281 },
+  { m: 'abr', v: 1287 }, { m: 'may', v: 1269 },
+];
+const RECURRING_YEARLY_HIST = [
+  { m: '2022', v: 12840 }, { m: '2023', v: 14150 },
+  { m: '2024', v: 15012 }, { m: '2025', v: 15388 },
+  { m: '2026', v: 15269 },
+];
+const RECURRING_EXP_FULL = [
+  { label: 'Alquiler',       annual: 12000, prev: 12000, cadence: 'Mensual',   icon: 'home',     color: '#0066FF' },
+  { label: 'Luz',            annual:   937, prev:   912, cadence: 'Mensual',   icon: 'sun',      color: '#FFC234' },
+  { label: 'Gas',            annual:   538, prev:   502, cadence: 'Mensual',   icon: 'home',     color: '#FF8A4C' },
+  { label: 'Domiciliaciones',annual:   540, prev:   540, cadence: 'Mensual',   icon: 'refresh',  color: '#7C5CFF' },
+  { label: 'Internet',       annual:   480, prev:   480, cadence: 'Mensual',   icon: 'wifi-pay', color: '#3FB984' },
+  { label: 'Agua',           annual:   294, prev:   286, cadence: 'Bimestral', icon: 'down',     color: '#5B8DEF' },
+  { label: 'Seguro coche',   annual:   480, prev:   460, cadence: 'Anual',     icon: 'car',      color: '#E16364' },
+];
+
+const WidgetRecurringAnnualDetail = ({ theme }) => {
+  const t = T(theme);
+  const [view, setView] = useState('monthly');
+  const data = view === 'monthly' ? RECURRING_MONTHLY_HIST : RECURRING_YEARLY_HIST;
+  const maxV = Math.max(...data.map(d => d.v));
+  const annualTotal = RECURRING_EXP_FULL.reduce((s, e) => s + e.annual, 0);
+  const prevTotal   = RECURRING_EXP_FULL.reduce((s, e) => s + e.prev, 0);
+  const delta = annualTotal - prevTotal;
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+      <div style={{ display: 'flex', background: t.surface2, borderRadius: 12, padding: 4, marginBottom: 18 }}>
+        {[{ id: 'monthly', l: 'Mensual' }, { id: 'yearly', l: 'Anual' }].map(v => (
+          <div key={v.id} onClick={() => setView(v.id)} style={{ flex: 1, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, cursor: 'pointer', background: view === v.id ? t.bg : 'transparent', color: view === v.id ? t.accent : t.text2, transition: 'all 0.2s', boxShadow: view === v.id ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>
+            {v.l}
+          </div>
+        ))}
+      </div>
+
+      <Card theme={theme} padding={18} radius={18} style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: t.text2, marginBottom: 14 }}>Evolución {view === 'monthly' ? 'mensual' : 'por año'}</div>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 80, marginBottom: 6 }}>
+          {data.map((d, i) => {
+            const pct = Math.round((d.v / maxV) * 100);
+            const isLast = i === data.length - 1;
+            return (
+              <div key={d.m} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: '100%', flex: 1, display: 'flex', alignItems: 'flex-end' }}>
+                  <div style={{ width: '100%', height: `${Math.max(pct, 6)}%`, minHeight: 4, borderRadius: 4, background: isLast ? t.accent : t.accent + '66', transition: 'height 0.3s' }}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {data.map(d => <div key={d.m} style={{ flex: 1, fontSize: 9, color: t.text3, textAlign: 'center' }}>{d.m}</div>)}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14, paddingTop: 12, borderTop: `1px solid ${t.border}` }}>
+          <div>
+            <div style={{ fontSize: 10.5, color: t.text2 }}>Total anual</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: t.accent }}>{annualTotal.toLocaleString('es-ES')} €</div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10.5, color: t.text2 }}>vs. año anterior</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: delta > 0 ? t.negative : t.positive }}>
+              {delta > 0 ? '+' : ''}{delta.toLocaleString('es-ES')} €
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 2 }}>Desglose por concepto</div>
+      <Card theme={theme} padding={6} radius={18}>
+        {RECURRING_EXP_FULL.map((exp, i) => {
+          const delta = exp.annual - exp.prev;
+          return (
+            <div key={exp.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 10px', borderBottom: i < RECURRING_EXP_FULL.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+              <div style={{ width: 34, height: 34, borderRadius: 11, background: exp.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name={exp.icon} size={14} color={exp.color}/>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600 }}>{exp.label}</div>
+                <div style={{ fontSize: 10.5, color: t.text3 }}>{exp.cadence}</div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{exp.annual.toLocaleString('es-ES')} €</div>
+                <div style={{ fontSize: 10.5, fontWeight: 600, color: delta === 0 ? t.text3 : delta > 0 ? t.negative : t.positive }}>
+                  {delta === 0 ? '— sin cambios' : `${delta > 0 ? '+' : ''}${delta} € vs. año ant.`}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </Card>
+    </div>
+  );
+};
+
+// ── Detail: Cumplimiento de presupuestos ──────────────────────────────────────
+
+const BUDGET_MONTH_HIST = [
+  { m: 'Nov 25', rate: 75, met: 3, total: 4, budgets: [
+    { label: 'Comida', pct: 80, color: '#0066FF' }, { label: 'Hogar', pct: 112, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 91, color: '#FF8A4C' },   { label: 'Transporte', pct: 74, color: '#5B8DEF' },
+  ]},
+  { m: 'Dic 25', rate: 50, met: 2, total: 4, budgets: [
+    { label: 'Comida', pct: 105, color: '#0066FF' }, { label: 'Hogar', pct: 118, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 78, color: '#FF8A4C' },    { label: 'Transporte', pct: 66, color: '#5B8DEF' },
+  ]},
+  { m: 'Ene 26', rate: 100, met: 4, total: 4, budgets: [
+    { label: 'Comida', pct: 77, color: '#0066FF' }, { label: 'Hogar', pct: 94, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 68, color: '#FF8A4C' },   { label: 'Transporte', pct: 58, color: '#5B8DEF' },
+  ]},
+  { m: 'Feb 26', rate: 75, met: 3, total: 4, budgets: [
+    { label: 'Comida', pct: 71, color: '#0066FF' }, { label: 'Hogar', pct: 89, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 104, color: '#FF8A4C' },  { label: 'Transporte', pct: 62, color: '#5B8DEF' },
+  ]},
+  { m: 'Mar 26', rate: 75, met: 3, total: 4, budgets: [
+    { label: 'Comida', pct: 80, color: '#0066FF' }, { label: 'Hogar', pct: 91, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 69, color: '#FF8A4C' },   { label: 'Transporte', pct: 107, color: '#5B8DEF' },
+  ]},
+  { m: 'Abr 26', rate: 75, met: 3, total: 4, budgets: [
+    { label: 'Comida', pct: 69, color: '#0066FF' }, { label: 'Hogar', pct: 113, color: '#7C5CFF' },
+    { label: 'Ocio', pct: 86, color: '#FF8A4C' },   { label: 'Transporte', pct: 64, color: '#5B8DEF' },
+  ]},
+];
+
+const WidgetBudgetRateDetail = ({ theme }) => {
+  const t = T(theme);
+  const [expanded, setExpanded] = useState(null);
+  const avg = Math.round(BUDGET_MONTH_HIST.reduce((s, m) => s + m.rate, 0) / BUDGET_MONTH_HIST.length);
+  const best = BUDGET_MONTH_HIST.reduce((a, b) => b.rate > a.rate ? b : a);
+  const worst = BUDGET_MONTH_HIST.reduce((a, b) => b.rate < a.rate ? b : a);
+  const streak = (() => {
+    let s = 0;
+    for (let i = BUDGET_MONTH_HIST.length - 1; i >= 0; i--) {
+      if (BUDGET_MONTH_HIST[i].rate === 100) s++; else break;
+    }
+    return s;
+  })();
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 20 }}>
+        {[
+          { label: 'Media', value: `${avg}%`, color: t.positive },
+          { label: 'Mejor mes', value: `${best.m}`, color: t.accent, sub: `${best.rate}%` },
+          { label: 'Peor mes', value: `${worst.m}`, color: t.negative, sub: `${worst.rate}%` },
+        ].map(s => (
+          <div key={s.label} style={{ padding: '12px 10px', borderRadius: 14, background: t.surface, border: `1px solid ${t.border}`, textAlign: 'center' }}>
+            <div style={{ fontSize: 10, color: t.text2, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.value}</div>
+            {s.sub && <div style={{ fontSize: 10, color: t.text2 }}>{s.sub}</div>}
+          </div>
+        ))}
+      </div>
+
+      {streak > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', borderRadius: 14, background: 'rgba(63,185,132,0.1)', border: '1px solid rgba(63,185,132,0.2)', marginBottom: 18 }}>
+          <PelasIcon name="check" size={16} color={t.positive} strokeWidth={2.5}/>
+          <div style={{ fontSize: 13, fontWeight: 500, color: t.positive }}>
+            {streak} mes{streak !== 1 ? 'es' : ''} seguido{streak !== 1 ? 's' : ''} con presupuesto 100% cumplido
+          </div>
+        </div>
+      )}
+
+      <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 2 }}>Historial mensual</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {BUDGET_MONTH_HIST.map((month) => {
+          const isOpen = expanded === month.m;
+          return (
+            <Card key={month.m} theme={theme} padding={14} radius={16}>
+              <div onClick={() => setExpanded(isOpen ? null : month.m)} style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 13, background: (month.rate === 100 ? t.positive : month.rate >= 75 ? t.accent : t.negative) + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: month.rate === 100 ? t.positive : month.rate >= 75 ? t.accent : t.negative }}>{month.rate}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{month.m}</div>
+                  <div style={{ fontSize: 11, color: t.text2 }}>{month.met} de {month.total} presupuestos cumplidos</div>
+                </div>
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {month.budgets.map(b => (
+                    <div key={b.label} style={{ width: 8, height: 8, borderRadius: 4, background: b.pct <= 100 ? b.color : t.negative }}/>
+                  ))}
+                </div>
+                <PelasIcon name={isOpen ? 'chevron-down' : 'chevron-right'} size={15} color={t.text2}/>
+              </div>
+              {isOpen && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {month.budgets.map(b => {
+                    const met = b.pct <= 100;
+                    return (
+                      <div key={b.label}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: 4, background: met ? b.color : t.negative }}/>
+                            <span style={{ fontSize: 12, fontWeight: 500 }}>{b.label}</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 12, color: met ? t.positive : t.negative, fontWeight: 600 }}>{b.pct}%</span>
+                            <div style={{ width: 16, height: 16, borderRadius: 8, background: met ? t.positive + '25' : t.negative + '25', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <PelasIcon name={met ? 'check' : 'x'} size={9} color={met ? t.positive : t.negative} strokeWidth={2.5}/>
+                            </div>
+                          </div>
+                        </div>
+                        <Progress value={Math.min(b.pct, 100)} color={met ? b.color : t.negative} track={t.surface2} height={4}/>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// ── Detail: Tasa de éxito de metas ────────────────────────────────────────────
+
+const GOALS_HISTORICAL = [
+  { id: 'gh1', label: 'Fondo de emergencia', icon: 'shield', color: '#3FB984', target: 5000, saved: 5000, due: 'Dic 2025',  status: 'lograda' },
+  { id: 'gh2', label: 'Portátil nuevo',       icon: 'laptop', color: '#0066FF', target: 1200, saved: 1200, due: 'Mar 2025',  status: 'lograda' },
+  { id: 'gh3', label: 'Curso de diseño',      icon: 'book',   color: '#E16364', target:  800, saved:  350, due: 'Ene 2026',  status: 'fallida' },
+  { id: 'gh4', label: 'Bici eléctrica',       icon: 'car',    color: '#A2A2A7', target: 1500, saved:  200, due: 'Mar 2026',  status: 'fallida' },
+];
+
+const WidgetGoalsRateDetail = ({ theme }) => {
+  const t = T(theme);
+  const [tab, setTab] = useState('activas');
+
+  const activeGoals  = PELAS_GOALS.map(g => ({ ...g, pct: Math.round((g.saved / g.target) * 100), status: 'activa' }));
+  const logradas     = GOALS_HISTORICAL.filter(g => g.status === 'lograda').map(g => ({ ...g, pct: 100 }));
+  const fallidas     = GOALS_HISTORICAL.filter(g => g.status === 'fallida').map(g => ({ ...g, pct: Math.round((g.saved / g.target) * 100) }));
+
+  const allGoals = [...activeGoals, ...logradas, ...fallidas];
+  const totalLogradas = logradas.length;
+  const totalFallidas = fallidas.length;
+  const totalActivas  = activeGoals.length;
+  const successRate = Math.round((totalLogradas / (totalLogradas + totalFallidas)) * 100) || 0;
+
+  const tabGoals = tab === 'activas' ? activeGoals : tab === 'logradas' ? logradas : fallidas;
+  const tabColor = tab === 'logradas' ? t.positive : tab === 'fallidas' ? t.negative : t.accent;
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 32px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 18 }}>
+        {[
+          { label: 'Creadas', value: allGoals.length },
+          { label: 'Activas', value: totalActivas, color: t.accent },
+          { label: 'Logradas', value: totalLogradas, color: t.positive },
+          { label: 'Fallidas', value: totalFallidas, color: t.negative },
+        ].map(s => (
+          <div key={s.label} style={{ padding: '10px 6px', borderRadius: 12, background: t.surface, border: `1px solid ${t.border}`, textAlign: 'center' }}>
+            <div style={{ fontSize: 9.5, color: t.text2, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: s.color || t.text }}>{s.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <Card theme={theme} padding={14} radius={16} style={{ marginBottom: 18, background: theme === 'dark' ? 'rgba(63,185,132,0.08)' : 'rgba(63,185,132,0.05)', border: '1px solid rgba(63,185,132,0.2)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 26, background: t.positive + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 800, color: t.positive }}>{successRate}%</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 600 }}>Tasa de éxito</div>
+            <div style={{ fontSize: 11.5, color: t.text2, marginTop: 2 }}>{totalLogradas} logradas de {totalLogradas + totalFallidas} concluidas</div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: 'flex', background: t.surface2, borderRadius: 12, padding: 4, marginBottom: 16 }}>
+        {[{ id: 'activas', l: `Activas (${totalActivas})` }, { id: 'logradas', l: `Logradas (${totalLogradas})` }, { id: 'fallidas', l: `Fallidas (${totalFallidas})` }].map(tp => (
+          <div key={tp.id} onClick={() => setTab(tp.id)} style={{ flex: 1, height: 34, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600, cursor: 'pointer', background: tab === tp.id ? t.bg : 'transparent', color: tab === tp.id ? (tp.id === 'logradas' ? t.positive : tp.id === 'fallidas' ? t.negative : t.accent) : t.text2, transition: 'all 0.2s', boxShadow: tab === tp.id ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>
+            {tp.l}
+          </div>
+        ))}
+      </div>
+
+      {tabGoals.length === 0 ? (
+        <Card theme={theme} padding={28} radius={16}>
+          <div style={{ textAlign: 'center', color: t.text2, fontSize: 13 }}>Sin metas en esta categoría</div>
+        </Card>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {tabGoals.map(g => (
+            <Card key={g.id} theme={theme} padding={14} radius={16}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 12, background: g.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <PelasIcon name={g.icon} size={16} color={g.color}/>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{g.label}</div>
+                  <div style={{ fontSize: 11, color: t.text2 }}>{tab === 'activas' ? `Vence: ${g.due}` : `Concluyó: ${g.due}`}</div>
+                </div>
+                <div style={{ padding: '3px 9px', borderRadius: 8, background: tabColor + '18', fontSize: 11, fontWeight: 700, color: tabColor }}>{g.pct}%</div>
+              </div>
+              <Progress value={Math.min(g.pct, 100)} color={tab === 'fallidas' ? t.negative : g.color} track={t.surface2} height={6}/>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 11, color: t.text2 }}>
+                <span>{g.saved.toLocaleString('es-ES')} € ahorrados</span>
+                <span>objetivo {g.target.toLocaleString('es-ES')} €</span>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const StatsDetailScreen = ({ theme, widgetId, onBack, onNavigate }) => {
   const widget = STATS_WIDGET_LIBRARY.find(item => item.id === widgetId);
   const title = widget?.label || 'Detalle de estadísticas';
@@ -2977,13 +3596,17 @@ export const StatsDetailScreen = ({ theme, widgetId, onBack, onNavigate }) => {
   const [evolutionFilters, setEvolutionFilters] = useState(EVOLUTION_FILTER_DEFAULT);
   const [combinedFilters, setCombinedFilters] = useState(COMBINED_FILTER_DEFAULT);
 
-  const isBalance   = widgetId === 'stats-balance';
-  const isEvolution = widgetId === 'stats-evolution';
-  const isCombined  = widgetId === 'stats-combined';
-  const isCurrencies = widgetId === 'stats-currencies';
-  const isCalendar = widgetId === 'stats-calendar';
-  const isNationalHeatmap = widgetId === 'stats-national-heatmap';
-  const isTravelHeatmap = widgetId === 'stats-travel-heatmap';
+  const isBalance       = widgetId === 'stats-balance';
+  const isEvolution     = widgetId === 'stats-evolution';
+  const isCombined      = widgetId === 'stats-combined';
+  const isCurrencies    = widgetId === 'stats-currencies';
+  const isCalendar      = widgetId === 'stats-calendar';
+  const isNationalHeatmap  = widgetId === 'stats-national-heatmap';
+  const isTravelHeatmap    = widgetId === 'stats-travel-heatmap';
+  const isSubscriptions    = widgetId === 'stats-subscriptions';
+  const isRecurringAnnual  = widgetId === 'stats-recurring-annual';
+  const isBudgetRate       = widgetId === 'stats-budget-rate';
+  const isGoalsRate        = widgetId === 'stats-goals-rate';
   const supportsFilter = isBalance || isEvolution || isCombined;
 
   const filtersActive = isBalance && (
@@ -3003,13 +3626,17 @@ export const StatsDetailScreen = ({ theme, widgetId, onBack, onNavigate }) => {
   );
 
   const renderDetail = () => {
-    if (isBalance)   return <WidgetBalanceDetail theme={theme} filters={balanceFilters} onNavigate={onNavigate}/>;
-    if (isEvolution) return <WidgetEvolutionDetail theme={theme} filters={evolutionFilters}/>;
-    if (isCombined)  return <WidgetCombinedDetail theme={theme} filters={combinedFilters} onNavigate={onNavigate}/>;
-    if (isCurrencies) return <WidgetCurrenciesDetail theme={theme} onNavigate={onNavigate}/>;
-    if (isCalendar) return <WidgetCalendarDetail theme={theme} onNavigate={onNavigate}/>;
-    if (isNationalHeatmap) return <WidgetNationalHeatmapDetail theme={theme} onNavigate={onNavigate}/>;
-    if (isTravelHeatmap) return <WidgetTravelHeatmapDetail theme={theme} onNavigate={onNavigate}/>;
+    if (isBalance)          return <WidgetBalanceDetail theme={theme} filters={balanceFilters} onNavigate={onNavigate}/>;
+    if (isEvolution)        return <WidgetEvolutionDetail theme={theme} filters={evolutionFilters}/>;
+    if (isCombined)         return <WidgetCombinedDetail theme={theme} filters={combinedFilters} onNavigate={onNavigate}/>;
+    if (isCurrencies)       return <WidgetCurrenciesDetail theme={theme} onNavigate={onNavigate}/>;
+    if (isCalendar)         return <WidgetCalendarDetail theme={theme} onNavigate={onNavigate}/>;
+    if (isNationalHeatmap)  return <WidgetNationalHeatmapDetail theme={theme} onNavigate={onNavigate}/>;
+    if (isTravelHeatmap)    return <WidgetTravelHeatmapDetail theme={theme} onNavigate={onNavigate}/>;
+    if (isSubscriptions)    return <WidgetSubscriptionsDetail theme={theme}/>;
+    if (isRecurringAnnual)  return <WidgetRecurringAnnualDetail theme={theme}/>;
+    if (isBudgetRate)       return <WidgetBudgetRateDetail theme={theme}/>;
+    if (isGoalsRate)        return <WidgetGoalsRateDetail theme={theme}/>;
     return <StatsGenericDetail theme={theme} title={title}/>;
   };
 
@@ -3055,9 +3682,26 @@ export const StatsDetailScreen = ({ theme, widgetId, onBack, onNavigate }) => {
 
 export const StatsScreen = ({ theme, onNavigate }) => {
   const t = T(theme);
-  const [widgets, setWidgets] = useState(DEFAULT_STATS_WIDGETS);
+  const [views, setViews]               = useState(DEFAULT_VIEWS);
+  const [activeViewId, setActiveViewId] = useState('v1');
+  const [viewSelectorOpen, setViewSelectorOpen] = useState(false);
+  const [configOpen, setConfigOpen]     = useState(false);
   const filters = DEFAULT_FILTERS;
-  const [configOpen, setConfigOpen] = useState(false);
+
+  const activeView = views.find(v => v.id === activeViewId) || views[0];
+
+  const setWidgets = (updater) => {
+    setViews(vs => vs.map(v =>
+      v.id === activeViewId
+        ? { ...v, widgets: typeof updater === 'function' ? updater(v.widgets) : updater }
+        : v
+    ));
+  };
+
+  const updateViews = (newViews) => {
+    setViews(newViews);
+    if (!newViews.find(v => v.id === activeViewId)) setActiveViewId(newViews[0].id);
+  };
 
   const renderWidget = (w) => {
     const WidgetComponent = WIDGET_COMPONENTS[w.id];
@@ -3073,7 +3717,7 @@ export const StatsScreen = ({ theme, onNavigate }) => {
     ) : null;
   };
 
-  const active = widgets.filter(w => w.enabled);
+  const active = activeView.widgets.filter(w => w.enabled);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -3081,7 +3725,15 @@ export const StatsScreen = ({ theme, onNavigate }) => {
       <div style={{ padding: '8px 22px 14px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
         <div style={{ flex: 1, fontSize: 18, fontWeight: 600 }}>Estadísticas</div>
 
-        {/* Customise button */}
+        {/* View selector pill */}
+        <div onClick={() => setViewSelectorOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 20, background: activeView.color + '18', border: `1px solid ${activeView.color}44`, cursor: 'pointer', transition: 'all 0.15s', flexShrink: 0 }}>
+          <PelasIcon name={activeView.icon} size={13} color={activeView.color}/>
+          <span style={{ fontSize: 12, fontWeight: 700, color: activeView.color, maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeView.name}</span>
+          <PelasIcon name="chevron-down" size={11} color={activeView.color}/>
+        </div>
+
+        {/* Customise current view widgets */}
         <div onClick={() => setConfigOpen(true)} style={{ width: 40, height: 40, borderRadius: 20, background: t.surface, border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <PelasIcon name="more" size={16} color={t.text}/>
         </div>
@@ -3090,17 +3742,38 @@ export const StatsScreen = ({ theme, onNavigate }) => {
       {/* Widget area */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 24px' }}>
         {active.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 20px', color: t.text2 }}>
-            <div style={{ fontSize: 30, marginBottom: 10 }}>📊</div>
-            <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>Sin widgets activos</div>
-            <div style={{ fontSize: 12 }}>Pulsa ··· para añadir secciones</div>
+          <div style={{ textAlign: 'center', padding: '48px 20px', color: t.text2 }}>
+            <div style={{ width: 64, height: 64, borderRadius: 22, background: activeView.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <PelasIcon name={activeView.icon} size={28} color={activeView.color}/>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, color: t.text }}>Vista "{activeView.name}" vacía</div>
+            <div style={{ fontSize: 12.5 }}>Pulsa ··· para activar widgets en esta vista</div>
           </div>
         )}
         {active.map(renderWidget)}
       </div>
 
-      {/* Drawers / sheets */}
-      {configOpen && <StatsConfigSheet theme={theme} widgets={widgets} setWidgets={setWidgets} onClose={() => setConfigOpen(false)}/>}
+      {/* Sheets */}
+      {configOpen && (
+        <StatsConfigSheet
+          theme={theme}
+          widgets={activeView.widgets}
+          setWidgets={setWidgets}
+          viewName={activeView.name}
+          viewColor={activeView.color}
+          onClose={() => setConfigOpen(false)}
+        />
+      )}
+      {viewSelectorOpen && (
+        <ViewSelectorSheet
+          theme={theme}
+          views={views}
+          activeViewId={activeViewId}
+          onSelect={setActiveViewId}
+          onChange={updateViews}
+          onClose={() => setViewSelectorOpen(false)}
+        />
+      )}
     </div>
   );
 };

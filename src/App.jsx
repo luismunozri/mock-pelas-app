@@ -5,15 +5,13 @@ import { T } from './theme';
 import { OnboardingScreen, SignInScreen, SignUpScreen } from './screens/auth';
 import { HomeScreen } from './screens/home';
 import { StatsDetailScreen, StatsScreen } from './screens/stats';
-import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen } from './screens/other';
+import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen, PersonalDataScreen, SecurityScreen, ProfileCategoriesScreen, NotificationSettingsScreen, LanguageScreen } from './screens/other';
 import { AddTransactionSheet, InvestmentsScreen } from './screens/extra';
 import { AccountsScreen, AccountDetailScreen } from './screens/accounts';
 import { CardsScreen } from './screens/cards';
 
 export default function App() {
   const [theme, setTheme] = useState('dark');
-  const [homeVariant, setHomeVariant] = useState('A');
-  const [statsVariant, setStatsVariant] = useState('A');
   const [route, setRoute] = useState({ name: 'onboarding', step: 0 });
   const [tab, setTab] = useState('home');
   const [showAddSheet, setShowAddSheet] = useState(false);
@@ -71,16 +69,21 @@ export default function App() {
     if (route.name === 'search')       return <SearchScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate}/>;
     if (route.name === 'notifications')return <NotificationsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
     if (route.name === 'category')     return <CategoryDetailScreen theme={theme} cat={route.cat} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate}/>;
-    if (route.name === 'profile')      return <ProfileScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} setTheme={setTheme}/>;
-    if (route.name === 'theme-style')  return <ThemeStyleScreen theme={theme} accentColor={accentColor} setAccentColor={setAccentColor} fontFamily={fontFamily} setFontFamily={setFontFamily} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'profile')               return <ProfileScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} setTheme={setTheme}/>;
+    if (route.name === 'theme-style')           return <ThemeStyleScreen theme={theme} accentColor={accentColor} setAccentColor={setAccentColor} fontFamily={fontFamily} setFontFamily={setFontFamily} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'personal-data')         return <PersonalDataScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'security')              return <SecurityScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'profile-categories')    return <ProfileCategoriesScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'notification-settings') return <NotificationSettingsScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
+    if (route.name === 'language')              return <LanguageScreen theme={theme} onBack={() => setRoute({ name: 'profile' })}/>;
     if (route.name === 'accounts')        return <AccountsScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} initialFilters={route.filters}/>;
     if (route.name === 'account-detail')  return <AccountDetailScreen theme={theme} account={route.account} onBack={() => setRoute({ name: 'accounts' })}/>;
     if (route.name === 'cards')           return <CardsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
     if (route.name === 'stats-detail')    return <StatsDetailScreen theme={theme} widgetId={route.widgetId} onBack={() => { setTab('stats'); setRoute({ name: 'main' }); }} onNavigate={navigate}/>;
 
 
-    if (tab === 'home')   return <HomeScreen theme={theme} variant={homeVariant} onNavigate={navigate}/>;
-    if (tab === 'stats')  return <StatsScreen theme={theme} variant={statsVariant} onNavigate={navigate}/>;
+    if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate}/>;
+    if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate}/>;
     if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')}/>;
     if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate}/>;
     return null;
@@ -147,18 +150,6 @@ export default function App() {
           <span style={{ fontSize: 12, color: t.text }}>Tema:</span>
           {['dark','light'].map(v => (
             <div key={v} onClick={() => setTheme(v)} style={{ padding: '5px 12px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: theme === v ? t.accent : t.surface2, color: theme === v ? '#fff' : t.text2, fontWeight: theme === v ? 600 : 400 }}>{v}</div>
-          ))}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: t.text }}>Home:</span>
-          {['A','B','C'].map(v => (
-            <div key={v} onClick={() => setHomeVariant(v)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: homeVariant === v ? t.accent : t.surface2, color: homeVariant === v ? '#fff' : t.text2, fontWeight: homeVariant === v ? 600 : 400 }}>{v}</div>
-          ))}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: t.text }}>Stats:</span>
-          {['A','B'].map(v => (
-            <div key={v} onClick={() => setStatsVariant(v)} style={{ padding: '5px 10px', borderRadius: 8, fontSize: 12, cursor: 'pointer', background: statsVariant === v ? t.accent : t.surface2, color: statsVariant === v ? '#fff' : t.text2, fontWeight: statsVariant === v ? 600 : 400 }}>{v}</div>
           ))}
         </div>
       </div>
