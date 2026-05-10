@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { PelasIcon } from './icons';
 import { T } from './theme';
 
@@ -100,6 +101,7 @@ export const Progress = ({ value = 0, color = '#0066FF', track = '#23253355', he
 );
 
 export const Sparkline = ({ data, color = '#0066FF', width = 280, height = 80, fill = true }) => {
+  const uid = useId().replace(/:/g, '');
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -112,17 +114,17 @@ export const Sparkline = ({ data, color = '#0066FF', width = 280, height = 80, f
     const cx = (x0 + x1) / 2;
     d += ` C ${cx} ${y0}, ${cx} ${y1}, ${x1} ${y1}`;
   }
-  const gradId = `spark-${color.replace('#', '')}`;
+  const gradId = `spark-${uid}`;
   return (
-    <svg width={width} height={height} style={{ display: 'block' }}>
+    <svg width={width} height={height} style={{ display: 'block', overflow: 'visible' }}>
       <defs>
         <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.32"/>
-          <stop offset="100%" stopColor={color} stopOpacity="0"/>
+          <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.32 }}/>
+          <stop offset="100%" style={{ stopColor: color, stopOpacity: 0 }}/>
         </linearGradient>
       </defs>
       {fill && <path d={`${d} L ${width} ${height} L 0 ${height} Z`} fill={`url(#${gradId})`} />}
-      <path d={d} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <path d={d} style={{ stroke: color }} strokeWidth="2" fill="none" strokeLinecap="round"/>
     </svg>
   );
 };

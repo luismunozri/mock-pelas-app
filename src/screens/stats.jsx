@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useId } from 'react';
 import { PelasIcon } from '../icons';
 import { T } from '../theme';
 import { Card, Progress, Sparkline, BarChart, Donut } from '../components';
@@ -269,6 +269,7 @@ const WidgetStatsCombined = ({ theme, filters, onInfo }) => {
 // ── Responsive mini sparkline (used in evolution widget) ─────────────────────
 
 const EvolutionMiniChart = ({ data, color, labelColor = '#7E848D', height = 90, yLabels = [] }) => {
+  const uid = useId().replace(/:/g, '');
   const W = 400; const H = height;
   const padL = yLabels.length ? 46 : 4;
   const min = Math.min(...data); const max = Math.max(...data); const range = max - min || 1;
@@ -282,12 +283,13 @@ const EvolutionMiniChart = ({ data, color, labelColor = '#7E848D', height = 90, 
     d += ` C ${cx} ${pts[i - 1][1]}, ${cx} ${pts[i][1]}, ${pts[i][0]} ${pts[i][1]}`;
   }
   const last = pts[pts.length - 1];
+  const gradId = `evo-mini-${uid}`;
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={height} style={{ display: 'block' }} preserveAspectRatio="xMidYMid meet">
       <defs>
-        <linearGradient id={`evo-mini-${color.replace('#','')}`} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
-          <stop offset="100%" stopColor={color} stopOpacity="0"/>
+        <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.25 }}/>
+          <stop offset="100%" style={{ stopColor: color, stopOpacity: 0 }}/>
         </linearGradient>
       </defs>
       {yLabels.map((lbl, i) => {
@@ -299,9 +301,9 @@ const EvolutionMiniChart = ({ data, color, labelColor = '#7E848D', height = 90, 
           </g>
         );
       })}
-      <path d={`${d} L ${last[0]} ${H} L ${pts[0][0]} ${H} Z`} fill={`url(#evo-mini-${color.replace('#','')})`}/>
-      <path d={d} stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <circle cx={last[0]} cy={last[1]} r="4" fill={color}/>
+      <path d={`${d} L ${last[0]} ${H} L ${pts[0][0]} ${H} Z`} fill={`url(#${gradId})`}/>
+      <path d={d} style={{ stroke: color }} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+      <circle cx={last[0]} cy={last[1]} r="4" style={{ fill: color }}/>
     </svg>
   );
 };
