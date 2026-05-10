@@ -439,6 +439,13 @@ const WidgetGoals = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS.goa
             </Card>
           );
         })}
+        {/* Añadir nueva meta */}
+        <div onClick={() => onNavigate('goals')} style={{ minWidth: 150, flexShrink: 0, cursor: 'pointer', borderRadius: 18, border: `2px dashed ${t.borderStrong}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 10px' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 20, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <PelasIcon name="plus" size={20} color={t.accent} strokeWidth={2.4}/>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 500, color: t.accent, textAlign: 'center', lineHeight: 1.3 }}>Añadir meta</div>
+        </div>
       </div>
     </div>
   );
