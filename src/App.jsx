@@ -3,7 +3,7 @@ import { PelasFrame, PelasTabBar, PelasTabSidebar } from './frame';
 import { PelasIcon } from './icons';
 import { T } from './theme';
 import { OnboardingScreen, SignInScreen, SignUpScreen } from './screens/auth';
-import { HomeScreen } from './screens/home';
+import { HomeScreen, HomeChartDetailScreen } from './screens/home';
 import { StatsDetailScreen, StatsScreen } from './screens/stats';
 import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen, PersonalDataScreen, SecurityScreen, ProfileCategoriesScreen, NotificationSettingsScreen, LanguageScreen, ExportDataScreen, ImportDataScreen, CloudBackupScreen, FamilyGroupScreen } from './screens/other';
 import { AddTransactionSheet, InvestmentsScreen } from './screens/extra';
@@ -94,6 +94,7 @@ export default function App() {
     if (route.name === 'account-detail')  return <AccountDetailScreen theme={theme} account={route.account} onBack={() => setRoute({ name: 'accounts' })}/>;
     if (route.name === 'cards')           return <CardsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
     if (route.name === 'stats-detail')    return <StatsDetailScreen theme={theme} widgetId={route.widgetId} onBack={() => { setTab('stats'); setRoute({ name: 'main' }); }} onNavigate={navigate}/>;
+    if (route.name === 'home-chart')      return <HomeChartDetailScreen theme={theme} settings={route.settings} onBack={() => { setTab('home'); setRoute({ name: 'main' }); }}/>;
 
 
     if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'} familyGroup={familyGroup}/>;
@@ -105,7 +106,10 @@ export default function App() {
 
   const inMain = route.name === 'main' && ['home','stats','tx','invest'].includes(tab);
   const isTablet = deviceMode === 'tablet' || deviceMode === 'tablet-v';
-  const isLandscape = !isTablet && route.name === 'stats-detail' && route.widgetId === 'stats-evolution';
+  const isLandscape = !isTablet && (
+    (route.name === 'stats-detail' && route.widgetId === 'stats-evolution') ||
+    route.name === 'home-chart'
+  );
 
   return (
     <div style={{

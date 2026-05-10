@@ -279,7 +279,6 @@ const ChartFullscreenOverlay = ({ theme, settings, onClose }) => {
 
 const WidgetBalance = ({ theme, hideBalance, setHideBalance, onNavigate, settings = DEFAULT_WIDGET_SETTINGS.balance }) => {
   const t = T(theme);
-  const [showChart, setShowChart] = useState(false);
   const included = PELAS_ACCOUNTS.filter(a => settings.accounts.includes(a.id));
   const total = included.reduce((s, a) => s + a.balance, 0)
     + (settings.includeInvestments ? PELAS_HOLDINGS.reduce((s, h) => s + h.value, 0) : 0);
@@ -302,15 +301,15 @@ const WidgetBalance = ({ theme, hideBalance, setHideBalance, onNavigate, setting
         <div style={{ background: 'rgba(63,185,132,0.16)', color: t.positive, fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6 }}>+12,4%</div>
         <div style={{ fontSize: 11, color: t.text2 }}>vs mes anterior</div>
       </div>
-      {/* Chart — tap to open fullscreen */}
-      <div onClick={() => setShowChart(true)} style={{ marginLeft: -10, marginBottom: 14, cursor: 'pointer', position: 'relative' }}>
+      {/* Chart — tap to open landscape fullscreen */}
+      <div onClick={() => onNavigate && onNavigate('home-chart', { settings })} style={{ marginLeft: -10, marginBottom: 14, cursor: 'pointer', position: 'relative' }}>
         <Sparkline data={chartData} width={settings.chartPeriod === '7d' ? 200 : 356} height={70} color={t.accent}/>
         <div style={{ position: 'absolute', top: 4, right: 4, width: 24, height: 24, borderRadius: 8, background: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <PelasIcon name="up" size={11} color={t.text2}/>
         </div>
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
-        {/* Ingresos — tap to go to movements */}
+        {/* Ingresos */}
         <Card theme={theme} padding={14} radius={16} style={{ flex: 1, cursor: 'pointer' }} onClick={() => onNavigate && onNavigate('history')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <div style={{ width: 22, height: 22, borderRadius: 11, background: 'rgba(63,185,132,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -320,7 +319,7 @@ const WidgetBalance = ({ theme, hideBalance, setHideBalance, onNavigate, setting
           </div>
           <div style={{ fontSize: 17, fontWeight: 600 }}>{fmtAmount(3120, hideBalance, settings.currency)}</div>
         </Card>
-        {/* Gastos — tap to go to movements */}
+        {/* Gastos */}
         <Card theme={theme} padding={14} radius={16} style={{ flex: 1, cursor: 'pointer' }} onClick={() => onNavigate && onNavigate('history')}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
             <div style={{ width: 22, height: 22, borderRadius: 11, background: 'rgba(225,99,100,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -331,9 +330,6 @@ const WidgetBalance = ({ theme, hideBalance, setHideBalance, onNavigate, setting
           <div style={{ fontSize: 17, fontWeight: 600 }}>{fmtAmount(1842.58, hideBalance, settings.currency)}</div>
         </Card>
       </div>
-      {showChart && (
-        <ChartFullscreenOverlay theme={theme} settings={settings} onClose={() => setShowChart(false)}/>
-      )}
     </div>
   );
 };
@@ -1666,4 +1662,137 @@ const HomeVariantC = ({ theme, onNavigate }) => {
 
 export const HomeScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false, familyGroup }) => {
   return <HomeVariantA theme={theme} onNavigate={onNavigate} tablet={tablet} tabletVertical={tabletVertical} familyGroup={familyGroup}/>;
+};
+
+// ── Home Chart Detail (landscape) ─────────────────────────────────────────────
+
+export const HomeChartDetailScreen = ({ theme, settings = DEFAULT_WIDGET_SETTINGS.balance, onBack }) => {
+  const t = T(theme);
+  const [period, setPeriod]   = useState(settings.chartPeriod || '30d');
+  const [accs, setAccs]       = useState(settings.accounts || ['a1','a2','a3','a4']);
+  const [inclInv, setInclInv] = useState(settings.includeInvestments || false);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const currency = settings.currency || 'EUR';
+  const cur = CURRENCIES.find(c => c.id === currency) || CURRENCIES[0];
+
+  const chartData = buildChartData(period);
+  const minV = Math.min(...chartData);
+  const maxV = Math.max(...chartData);
+  const midV = (minV + maxV) / 2;
+
+  const included = PELAS_ACCOUNTS.filter(a => accs.includes(a.id));
+  const total = included.reduce((s, a) => s + a.balance, 0)
+    + (inclInv ? PELAS_HOLDINGS.reduce((s, h) => s + h.value, 0) : 0);
+
+  const periodLabel = PERIOD_OPTIONS.find(p => p.id === period)?.label || '';
+  const fmt = (v) => (v / 1000).toFixed(1) + 'k ' + cur.symbol;
+
+  const CHART_W = 560;
+  const CHART_H = 180;
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, position: 'relative' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 18px 8px', flexShrink: 0 }}>
+        <div onClick={onBack} style={{ width: 34, height: 34, borderRadius: 17, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <PelasIcon name="arrow-left" size={15} color={t.text2}/>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, color: t.text2, marginBottom: 1 }}>Evolución del saldo · {periodLabel}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.6 }}>
+            {fmtAmount(total, false, currency)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+          {PERIOD_OPTIONS.map(p => (
+            <div key={p.id} onClick={() => setPeriod(p.id)} style={{
+              padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+              background: period === p.id ? t.accent : t.surface2,
+              color: period === p.id ? '#fff' : t.text2,
+              transition: 'all 0.15s',
+            }}>{p.short}</div>
+          ))}
+        </div>
+        <div onClick={() => setShowFilters(true)} style={{ width: 34, height: 34, borderRadius: 17, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+          <PelasIcon name="filter" size={15} color={t.text2}/>
+        </div>
+      </div>
+
+      {/* Chart area */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'stretch', padding: '0 18px 10px', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: 50, paddingBottom: 18, flexShrink: 0 }}>
+          {[maxV, midV, minV].map((v, i) => (
+            <div key={i} style={{ fontSize: 9, color: t.text3, textAlign: 'right' }}>{fmt(v)}</div>
+          ))}
+        </div>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
+            <Sparkline data={chartData} width={CHART_W} height={CHART_H} color={t.accent}/>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, padding: '0 8px 0 10px' }}>
+            {X_LABELS[period].map((l, i) => (
+              <div key={i} style={{ fontSize: 9, color: t.text3 }}>{l}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Filter sheet */}
+      {showFilters && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={() => setShowFilters(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '85%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
+            <div style={{ padding: '14px 22px 0', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 18 }}>
+                <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>Filtros del gráfico</div>
+                <div onClick={() => setShowFilters(false)} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <PelasIcon name="x" size={15} color={t.text2}/>
+                </div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 24px' }}>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>Período</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {PERIOD_OPTIONS.map(p => (
+                    <div key={p.id} onClick={() => setPeriod(p.id)} style={{ flex: 1, padding: '10px 0', borderRadius: 12, cursor: 'pointer', textAlign: 'center', fontSize: 12.5, fontWeight: 500, background: period === p.id ? t.accent : t.surface2, color: period === p.id ? '#fff' : t.text2, transition: 'all 0.15s' }}>
+                      {p.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 }}>Cuentas incluidas</div>
+                {PELAS_ACCOUNTS.map(a => {
+                  const on = accs.includes(a.id);
+                  return (
+                    <div key={a.id} onClick={() => setAccs(prev => on ? prev.filter(x => x !== a.id) : [...prev, a.id])} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 14, marginBottom: 6, background: on ? a.color + '14' : t.surface2, border: `1px solid ${on ? a.color : 'transparent'}`, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      <div style={{ width: 30, height: 30, borderRadius: 9, background: a.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <PelasIcon name={a.icon} size={14} color={a.color}/>
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 500 }}>{a.name}</div>
+                        <div style={{ fontSize: 11, color: t.text2 }}>{a.bank}</div>
+                      </div>
+                      <div style={{ width: 20, height: 20, borderRadius: 6, background: on ? a.color : 'transparent', border: `1.5px solid ${on ? a.color : t.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {on && <PelasIcon name="check" size={11} color="#fff" strokeWidth={3}/>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px', borderRadius: 14, background: t.surface }}>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 500 }}>Incluir inversiones</div>
+                  <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>Suma el valor de la cartera al saldo total</div>
+                </div>
+                <Toggle on={inclInv} color={t.accent} onChange={() => setInclInv(v => !v)}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
