@@ -585,23 +585,54 @@ const WidgetSharedAccounts = ({ theme, onNavigate, familyGroup }) => {
   );
 };
 
+const BUDGET_MODES = [
+  { id: 'weekly',  label: 'Semanal',  mult: 0.25, days: 7,   daysLeft: 3  },
+  { id: 'monthly', label: 'Mensual',  mult: 1,    days: 30,  daysLeft: 28 },
+  { id: 'yearly',  label: 'Anual',    mult: 12,   days: 365, daysLeft: 245 },
+];
+
 const WidgetBudgetBar = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS['budget-bar'] }) => {
   const t = T(theme);
-  const totalBudget = PELAS_BUDGETS.reduce((s, b) => s + b.budget, 0);
-  const totalSpent  = PELAS_BUDGETS.reduce((s, b) => s + b.spent, 0);
+  const [modeIdx, setModeIdx] = useState(1); // default = mensual
+  const touchStartX = useRef(null);
+
+  const mode = BUDGET_MODES[modeIdx];
+  const baseBudget = PELAS_BUDGETS.reduce((s, b) => s + b.budget, 0);
+  const baseSpent  = PELAS_BUDGETS.reduce((s, b) => s + b.spent, 0);
+  const totalBudget = Math.round(baseBudget * mode.mult);
+  const totalSpent  = Math.round(baseSpent  * mode.mult);
   const remaining   = totalBudget - totalSpent;
   const pct         = Math.round((totalSpent / totalBudget) * 100);
-  const daysLeft    = 28; // días restantes en el mes (mock)
   const barColor    = pct < 70 ? t.positive : pct < 90 ? t.warning : t.negative;
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) setModeIdx(i => Math.min(BUDGET_MODES.length - 1, i + 1));
+      else         setModeIdx(i => Math.max(0, i - 1));
+    }
+    touchStartX.current = null;
+  };
 
   return (
     <div style={{ marginBottom: 22 }}>
-      <SectionTitle theme={theme} title="Presupuesto del mes" action="Detalles" onAction={() => onNavigate('budgets')}/>
+      <SectionTitle theme={theme} title="Presupuesto" action="Detalles" onAction={() => onNavigate('budgets')}/>
       <Card theme={theme} padding={18} radius={20}>
+        {/* Selector de período */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 14, padding: 3, background: t.surface2, borderRadius: 12 }}>
+          {BUDGET_MODES.map((m, i) => (
+            <div key={m.id} onClick={() => setModeIdx(i)} style={{ flex: 1, textAlign: 'center', padding: '7px 0', borderRadius: 10, cursor: 'pointer', fontSize: 11.5, fontWeight: 500, background: modeIdx === i ? t.surface : 'transparent', color: modeIdx === i ? t.accent : t.text2, transition: 'all 0.18s', boxShadow: modeIdx === i ? '0 1px 4px rgba(0,0,0,0.12)' : 'none' }}>
+              {m.label}
+            </div>
+          ))}
+        </div>
+
         {/* Porcentaje grande */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>Gastado este mes</div>
+            <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>Gastado {mode.id === 'weekly' ? 'esta semana' : mode.id === 'monthly' ? 'este mes' : 'este año'}</div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
               <span style={{ fontSize: 36, fontWeight: 700, letterSpacing: -1, color: barColor }}>{pct}%</span>
               <span style={{ fontSize: 13, color: t.text2 }}>de {totalBudget} €</span>
@@ -612,13 +643,20 @@ const WidgetBudgetBar = ({ theme, onNavigate, settings = DEFAULT_WIDGET_SETTINGS
             <div style={{ fontSize: 18, fontWeight: 600, color: t.text, marginTop: 2 }}>
               {remaining.toLocaleString('es-ES', { minimumFractionDigits: 0 })} €
             </div>
-            <div style={{ fontSize: 10.5, color: t.text3, marginTop: 1 }}>{daysLeft} días</div>
+            <div style={{ fontSize: 10.5, color: t.text3, marginTop: 1 }}>{mode.daysLeft} días</div>
           </div>
         </div>
 
         {/* Barra principal */}
         <div style={{ width: '100%', height: 10, background: t.surface2, borderRadius: 5, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 5, background: barColor, transition: 'width 0.5s ease' }}/>
+        </div>
+
+        {/* Indicadores de dots */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 5, marginTop: 8 }}>
+          {BUDGET_MODES.map((_, i) => (
+            <div key={i} onClick={() => setModeIdx(i)} style={{ width: modeIdx === i ? 16 : 6, height: 6, borderRadius: 3, background: modeIdx === i ? t.accent : t.borderStrong, transition: 'all 0.2s', cursor: 'pointer' }}/>
+          ))}
         </div>
 
         {/* Mini barras por categoría — sólo en modo extenso */}
