@@ -3683,7 +3683,7 @@ export const StatsDetailScreen = ({ theme, widgetId, onBack, onNavigate }) => {
 // Stats widgets that always span full width in tablet 2-col grid
 const STATS_FULL_WIDTH = new Set(['stats-balance','stats-evolution','stats-combined','stats-calendar','stats-national-heatmap','stats-travel-heatmap']);
 
-export const StatsScreen = ({ theme, onNavigate, tablet = false }) => {
+export const StatsScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false }) => {
   const t = T(theme);
   const [views, setViews]               = useState(DEFAULT_VIEWS);
   const [activeViewId, setActiveViewId] = useState('v1');
@@ -3753,7 +3753,7 @@ export const StatsScreen = ({ theme, onNavigate, tablet = false }) => {
             <div style={{ fontSize: 12.5 }}>Pulsa ··· para activar widgets en esta vista</div>
           </div>
         )}
-        {tablet ? (
+        {(tablet && !tabletVertical) ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' }}>
             {active.map(w => (
               <div key={w.id} style={{ gridColumn: STATS_FULL_WIDTH.has(w.id) ? '1 / -1' : 'auto' }}>

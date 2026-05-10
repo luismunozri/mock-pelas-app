@@ -96,11 +96,11 @@ export const PelasTabSidebar = ({ theme, active, onChange }) => {
   );
 };
 
-export const PelasFrame = ({ children, theme = 'dark', tabBar, sidebar, hideStatus = false, statusBg, landscape = false, tablet = false }) => {
+export const PelasFrame = ({ children, theme = 'dark', tabBar, sidebar, hideStatus = false, statusBg, landscape = false, tablet = false, tabletVertical = false }) => {
   const t = T(theme);
-  const isTablet = tablet && !landscape;
-  const W = landscape ? 740 : isTablet ? 960 : 390;
-  const H = landscape ? 370 : isTablet ? 540 : 820;
+  const isTablet = (tablet || tabletVertical) && !landscape;
+  const W = landscape ? 740 : tabletVertical ? 720 : isTablet ? 960 : 390;
+  const H = landscape ? 370 : tabletVertical ? 960 : isTablet ? 540 : 820;
   const radius = landscape ? 48 : isTablet ? 20 : 44;
   const borderW = isTablet ? 11 : 9;
 
@@ -126,7 +126,8 @@ export const PelasFrame = ({ children, theme = 'dark', tabBar, sidebar, hideStat
           {/* Phone notch */}
           {!landscape && !isTablet && <div style={{ position: 'absolute', left: '50%', top: 8, transform: 'translateX(-50%)', width: 22, height: 22, borderRadius: 11, background: '#0a0a10' }}/>}
           {/* Tablet front camera */}
-          {isTablet && <div style={{ position: 'absolute', top: 9, right: 22, width: 9, height: 9, borderRadius: 5, background: '#0c0c18' }}/>}
+          {tablet && !landscape && <div style={{ position: 'absolute', top: 9, right: 22, width: 9, height: 9, borderRadius: 5, background: '#0c0c18' }}/>}
+          {tabletVertical && <div style={{ position: 'absolute', left: '50%', top: 9, transform: 'translateX(-50%)', width: 9, height: 9, borderRadius: 5, background: '#0c0c18' }}/>}
           <StatusIcons color={t.text}/>
         </div>
       )}
