@@ -51,7 +51,14 @@ export default function App() {
     root.style.setProperty('--pelas-accent-rgb', `${r}, ${g}, ${b}`);
   }, [accentColor, fontFamily]);
 
-  const navigate = (name, params = {}) => setRoute({ name, ...params });
+  const navigate = (name, params = {}) => {
+    // Tab shortcuts (for navigation from profile or other deep screens)
+    if (name === 'tab-home')   { setTab('home');   setRoute({ name: 'main' }); return; }
+    if (name === 'tab-stats')  { setTab('stats');  setRoute({ name: 'main' }); return; }
+    if (name === 'tab-tx')     { setTab('tx');     setRoute({ name: 'main' }); return; }
+    if (name === 'tab-invest') { setTab('invest'); setRoute({ name: 'main', ...params }); return; }
+    setRoute({ name, ...params });
+  };
 
   const handleTabChange = (newTab) => {
     if (newTab === 'add') { setShowAddSheet(true); return; }
@@ -101,7 +108,7 @@ export default function App() {
     if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'} familyGroup={familyGroup}/>;
     if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
     if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
-    if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
+    if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'} initialSection={route.section}/>;
     return null;
   };
 

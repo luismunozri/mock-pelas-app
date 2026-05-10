@@ -676,6 +676,18 @@ export const TxDetailScreen = ({ theme, tx, onBack, onNavigate }) => {
 
 // ── Profile ───────────────────────────────────────────────────────────────────
 
+// ── Quick-nav tiles for the "Ver" section ─────────────────────────────────────
+const VER_ITEMS = [
+  { icon: 'card',     label: 'Cuentas',           color: '#0066FF', onClick: (nav) => nav('accounts') },
+  { icon: 'goal',     label: 'Presupuestos',       color: '#FF8A4C', onClick: (nav) => nav('budgets') },
+  { icon: 'shield',   label: 'Metas',              color: '#3FB984', onClick: (nav) => nav('goals') },
+  { icon: 'wallet',   label: 'Movimientos',        color: '#7C5CFF', onClick: (nav) => nav('tab-tx') },
+  { icon: 'card',     label: 'Tarjetas',           color: '#FFC234', onClick: (nav) => nav('cards') },
+  { icon: 'trending', label: 'Seguimiento',        color: '#5B8DEF', onClick: (nav) => nav('tab-invest', { section: 'watchlist-search' }) },
+  { icon: 'chart',    label: 'Portfolio',          color: '#E16364', onClick: (nav) => nav('tab-invest', { section: 'positions' }) },
+  { icon: 'bell',     label: 'Alertas inversión',  color: '#FFC234', onClick: (nav) => nav('tab-invest', { section: 'alerts' }) },
+];
+
 export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
   const t = T(theme);
   const groups = [
@@ -723,6 +735,8 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
           <PelasIcon name={theme === 'dark' ? 'sun' : 'moon'} size={18} color={t.text}/>
         </div>
       </div>
+
+      {/* User card */}
       <Card theme={theme} padding={18} radius={22} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
         <div style={{ width: 56, height: 56, borderRadius: 28, background: 'linear-gradient(135deg,#0066FF,#7C5CFF)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: 18 }}>MB</div>
         <div style={{ flex: 1 }}>
@@ -738,6 +752,29 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
           <span style={{ fontSize: 11.5, fontWeight: 600, color: t.negative }}>Salir</span>
         </div>
       </Card>
+
+      {/* ── Sección Ver ─────────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: 22 }}>
+        <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 4 }}>Ver</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {VER_ITEMS.map(item => (
+            <div key={item.label} onClick={() => item.onClick(onNavigate)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 8px', borderRadius: 18, background: t.surface, border: `1px solid ${t.border}`, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s', userSelect: 'none' }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              onTouchStart={e => e.currentTarget.style.transform = 'scale(0.96)'}
+              onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              <div style={{ width: 42, height: 42, borderRadius: 14, background: item.color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <PelasIcon name={item.icon} size={20} color={item.color}/>
+              </div>
+              <div style={{ fontSize: 10.5, fontWeight: 500, color: t.text, textAlign: 'center', lineHeight: 1.25 }}>{item.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Secciones de configuración ─────────────────────────────────────── */}
       {groups.map(g => (
         <div key={g.title} style={{ marginBottom: 18 }}>
           <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 8, paddingLeft: 4 }}>{g.title}</div>

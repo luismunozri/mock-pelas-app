@@ -707,16 +707,16 @@ const AddInvestmentSheet = ({ theme, holdings, onClose }) => {
 
 // ── Main Investments Screen ───────────────────────────────────────────────────
 
-export const InvestmentsScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false }) => {
+export const InvestmentsScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false, initialSection }) => {
   const t = T(theme);
   const [filter, setFilter] = useState('Todos');
   const [chartPeriod, setChartPeriod] = useState('1M');
   const [hideValue, setHideValue] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
-  const [showPositions, setShowPositions] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
+  const [showPositions, setShowPositions] = useState(initialSection === 'positions');
+  const [showSearch, setShowSearch] = useState(initialSection === 'watchlist-search');
   const [showAddMove, setShowAddMove] = useState(false);
-  const [showAlerts, setShowAlerts] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(initialSection === 'alerts');
   const [holdings, setHoldings] = useState(PELAS_HOLDINGS);
   const [widgets, setWidgets] = useState(INV_WIDGET_DEFS.map(d => ({ id: d.id, enabled: true })));
   const [watchlist, setWatchlist] = useState(WATCH_STOCKS);
