@@ -413,18 +413,69 @@ export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initi
 
 // ── TxDetail ─────────────────────────────────────────────────────────────────
 
+// Mock map generator based on location text
+const MockMap = ({ location, theme }) => {
+  const t = T(theme);
+  // Generate deterministic pin position based on location string
+  const hash = location.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const pinX = 30 + (hash % 240);
+  const pinY = 20 + ((hash * 7) % 80);
+  const mapBg = theme === 'dark' ? '#1E2535' : '#E8EFF8';
+  const roadColor = theme === 'dark' ? '#2A3448' : '#D0DCF0';
+  const blockColor = theme === 'dark' ? '#252D3E' : '#D8E5F5';
+  return (
+    <svg width="100%" height={110} viewBox="0 0 320 110" style={{ display: 'block', borderRadius: 14 }}>
+      <rect width="320" height="110" fill={mapBg}/>
+      {/* Roads */}
+      <rect x="0" y="40" width="320" height="12" fill={roadColor}/>
+      <rect x="0" y="72" width="320" height="10" fill={roadColor}/>
+      <rect x="60" y="0" width="10" height="110" fill={roadColor}/>
+      <rect x="160" y="0" width="12" height="110" fill={roadColor}/>
+      <rect x="250" y="0" width="10" height="110" fill={roadColor}/>
+      {/* Blocks */}
+      {[[10,5,45,32],[80,5,75,32],[188,5,55,32],[275,5,40,32],
+        [10,56,45,50],[80,56,75,50],[188,56,55,50],[275,56,40,50]].map(([x,y,w,h], i) => (
+        <rect key={i} x={x} y={y} width={w} height={h} fill={blockColor} rx="3"/>
+      ))}
+      {/* Pin shadow */}
+      <ellipse cx={pinX} cy={pinY + 18} rx="6" ry="2.5" fill="rgba(0,0,0,0.18)"/>
+      {/* Pin */}
+      <circle cx={pinX} cy={pinY} r="10" fill="var(--pelas-accent)" stroke="#fff" strokeWidth="2.5"/>
+      <circle cx={pinX} cy={pinY} r="4" fill="#fff"/>
+    </svg>
+  );
+};
+
 export const TxDetailScreen = ({ theme, tx, onBack, onNavigate }) => {
   const t = T(theme);
+  const [showMenu, setShowMenu] = useState(false);
   if (!tx) return null;
   const cat = PELAS_CATEGORIES.find(c => c.id === tx.cat);
   const positive = tx.amount >= 0;
+  const hasLocation = tx.location && tx.location !== 'Online' && tx.location !== 'Transferencia' && tx.location !== 'Domiciliación';
+
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <PelasHeader theme={theme} title="Detalle" onBack={onBack} action={
-        <div style={{ width: 40, height: 40, borderRadius: 20, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-          <PelasIcon name="more" size={18} color={t.text}/>
+        <div style={{ position: 'relative' }}>
+          <div onClick={() => setShowMenu(v => !v)} style={{ width: 40, height: 40, borderRadius: 20, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <PelasIcon name="more" size={18} color={t.text}/>
+          </div>
+          {showMenu && (
+            <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 46, right: 0, background: t.surface, border: `1px solid ${t.border}`, borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.25)', zIndex: 10, minWidth: 160, overflow: 'hidden' }}>
+              <div onClick={() => setShowMenu(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', cursor: 'pointer', borderBottom: `1px solid ${t.border}` }}>
+                <PelasIcon name="edit" size={15} color={t.text2}/>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Editar</span>
+              </div>
+              <div onClick={() => setShowMenu(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', cursor: 'pointer' }}>
+                <PelasIcon name="x" size={15} color={t.negative}/>
+                <span style={{ fontSize: 13, fontWeight: 500, color: t.negative }}>Eliminar</span>
+              </div>
+            </div>
+          )}
         </div>
       }/>
+      {showMenu && <div onClick={() => setShowMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 5 }}/>}
       <div style={{ padding: '0 22px 24px' }}>
         <div style={{ textAlign: 'center', padding: '18px 0 24px' }}>
           <div style={{ width: 64, height: 64, borderRadius: 20, background: positive ? 'rgba(63,185,132,0.16)' : (cat?.color + '22' || t.surface2), display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
@@ -449,18 +500,17 @@ export const TxDetailScreen = ({ theme, tx, onBack, onNavigate }) => {
           <div style={{ fontSize: 12, color: t.text2, marginBottom: 6 }}>Nota</div>
           <div style={{ fontSize: 13 }}>Compra del fin de semana · pollo, verduras, fruta y café.</div>
         </Card>
-        <Card theme={theme} padding={14} radius={18} style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <PelasIcon name="people" size={16} color={t.accent}/>
+        {hasLocation && (
+          <Card theme={theme} padding={14} radius={18} style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <PelasIcon name="search" size={13} color={t.accent}/>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{tx.location}</div>
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 500 }}>Compartir gasto</div>
-              <div style={{ fontSize: 11, color: t.text2 }}>Divide con Carla, Diego o el grupo "Casa"</div>
+            <div style={{ borderRadius: 14, overflow: 'hidden' }}>
+              <MockMap location={tx.location} theme={theme}/>
             </div>
-            <PelasIcon name="chevron-right" size={18} color={t.text2}/>
-          </div>
-        </Card>
+          </Card>
+        )}
         <div style={{ display: 'flex', gap: 10 }}>
           <PrimaryButton theme={theme} variant="secondary" full>Repetir</PrimaryButton>
           <PrimaryButton theme={theme} full>Editar</PrimaryButton>
