@@ -777,17 +777,27 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
 
 // ── Budgets Screen ─────────────────────────────────────────────────────────────
 
+const BUDGET_SUMMARY_MODES = [
+  { id: 'weekly',  label: 'Semanal', mult: 0.25, daysLeft: 3   },
+  { id: 'monthly', label: 'Mensual', mult: 1,    daysLeft: 28  },
+  { id: 'yearly',  label: 'Anual',   mult: 12,   daysLeft: 245 },
+];
+
 export const BudgetsScreen = ({ theme, onBack }) => {
   const t = T(theme);
   const [budgets, setBudgets] = useState(PELAS_BUDGETS);
   const [showAdd, setShowAdd] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [summaryIdx, setSummaryIdx] = useState(1);
+  const touchStartXBudget = useRef(null);
 
-  const totalSpent  = budgets.reduce((s, b) => s + b.spent, 0);
-  const totalBudget = budgets.reduce((s, b) => s + b.budget, 0);
+  const mode = BUDGET_SUMMARY_MODES[summaryIdx];
+  const baseTotalSpent  = budgets.reduce((s, b) => s + b.spent, 0);
+  const baseTotalBudget = budgets.reduce((s, b) => s + b.budget, 0);
+  const totalSpent  = Math.round(baseTotalSpent  * mode.mult);
+  const totalBudget = Math.round(baseTotalBudget * mode.mult);
   const pct         = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
   const remaining   = totalBudget - totalSpent;
-  const daysLeft    = 28;
   const barColor    = pct < 70 ? t.positive : pct < 90 ? t.warning : t.negative;
 
   const handleSave = (b) => {
@@ -796,6 +806,17 @@ export const BudgetsScreen = ({ theme, onBack }) => {
   };
 
   const handleDelete = (id) => setBudgets(prev => prev.filter(x => x.id !== id));
+
+  const onBudgetTouchStart = (e) => { touchStartXBudget.current = e.touches[0].clientX; };
+  const onBudgetTouchEnd = (e) => {
+    if (touchStartXBudget.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartXBudget.current;
+    if (Math.abs(dx) > 40) {
+      if (dx < 0) setSummaryIdx(i => Math.min(BUDGET_SUMMARY_MODES.length - 1, i + 1));
+      else         setSummaryIdx(i => Math.max(0, i - 1));
+    }
+    touchStartXBudget.current = null;
+  };
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
@@ -806,11 +827,21 @@ export const BudgetsScreen = ({ theme, onBack }) => {
         />
         <div style={{ padding: '0 22px 100px' }}>
 
-          {/* Resumen del mes */}
-          <Card theme={theme} padding={18} radius={20} style={{ marginBottom: 20 }}>
+          {/* Resumen deslizable (semanal/mensual/anual) */}
+          <Card theme={theme} padding={18} radius={20} style={{ marginBottom: 20 }} onTouchStart={onBudgetTouchStart} onTouchEnd={onBudgetTouchEnd}>
+            {/* Selector de período */}
+            <div style={{ display: 'flex', gap: 5, marginBottom: 14, padding: 3, background: t.surface2, borderRadius: 10 }}>
+              {BUDGET_SUMMARY_MODES.map((m, i) => (
+                <div key={m.id} onClick={() => setSummaryIdx(i)} style={{ flex: 1, textAlign: 'center', padding: '6px 0', borderRadius: 8, cursor: 'pointer', fontSize: 11, fontWeight: 500, background: summaryIdx === i ? t.surface : 'transparent', color: summaryIdx === i ? t.accent : t.text2, transition: 'all 0.18s', boxShadow: summaryIdx === i ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}>
+                  {m.label}
+                </div>
+              ))}
+            </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
               <div>
-                <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>Gastado este mes</div>
+                <div style={{ fontSize: 11, color: t.text2, marginBottom: 4 }}>
+                  Gastado {mode.id === 'weekly' ? 'esta semana' : mode.id === 'monthly' ? 'este mes' : 'este año'}
+                </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                   <span style={{ fontSize: 32, fontWeight: 700, letterSpacing: -0.8, color: barColor }}>{pct}%</span>
                   <span style={{ fontSize: 12, color: t.text2 }}>de {totalBudget.toLocaleString('es-ES')} €</span>
@@ -819,11 +850,17 @@ export const BudgetsScreen = ({ theme, onBack }) => {
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 11, color: t.text2 }}>Te quedan</div>
                 <div style={{ fontSize: 18, fontWeight: 600, color: t.text }}>{remaining.toLocaleString('es-ES')} €</div>
-                <div style={{ fontSize: 10.5, color: t.text3 }}>{daysLeft} días</div>
+                <div style={{ fontSize: 10.5, color: t.text3 }}>{mode.daysLeft} días</div>
               </div>
             </div>
-            <div style={{ width: '100%', height: 8, background: t.surface2, borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: 8, background: t.surface2, borderRadius: 4, overflow: 'hidden', marginBottom: 10 }}>
               <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', borderRadius: 4, background: barColor, transition: 'width 0.5s ease' }}/>
+            </div>
+            {/* Dots */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 5 }}>
+              {BUDGET_SUMMARY_MODES.map((_, i) => (
+                <div key={i} onClick={() => setSummaryIdx(i)} style={{ width: summaryIdx === i ? 14 : 5, height: 5, borderRadius: 3, background: summaryIdx === i ? t.accent : t.borderStrong, transition: 'all 0.2s', cursor: 'pointer' }}/>
+              ))}
             </div>
           </Card>
 
