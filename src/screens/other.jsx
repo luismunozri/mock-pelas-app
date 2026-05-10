@@ -267,12 +267,54 @@ const FilterDrawer = ({ theme, open, onClose, filters, setFilters, onApply, onRe
 
 const MONTHS     = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
-export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initialMonthIdx }) => {
+// ── Mini Calendar for tablet layout ─────────────────────────────────────────
+
+const MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+const DAY_HDRS = ['L','M','X','J','V','S','D'];
+
+const MiniCalendar = ({ theme, monthIdx, onSelectDay, selectedDay, txDays }) => {
+  const t = T(theme);
+  const firstDow = (new Date(2025, monthIdx, 1).getDay() + 6) % 7; // Mon-based
+  const daysInMonth = MONTH_DAYS[monthIdx] ?? 30;
+  const cells = [
+    ...Array(firstDow).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 6 }}>
+        {DAY_HDRS.map(h => (
+          <div key={h} style={{ textAlign: 'center', fontSize: 9.5, color: t.text3, fontWeight: 700 }}>{h}</div>
+        ))}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+        {cells.map((day, i) => {
+          if (!day) return <div key={i}/>;
+          const hasTx = txDays.has(day);
+          const isSelected = selectedDay === day;
+          return (
+            <div key={i} onClick={() => onSelectDay(isSelected ? null : day)}
+              style={{ textAlign: 'center', height: 34, lineHeight: '28px', fontSize: 12, borderRadius: 9, cursor: 'pointer', background: isSelected ? t.accent : 'transparent', color: isSelected ? '#fff' : hasTx ? t.text : t.text3, fontWeight: isSelected || hasTx ? 600 : 400, border: hasTx && !isSelected ? `1px solid ${t.borderStrong}` : '1px solid transparent', transition: 'all 0.15s', position: 'relative' }}>
+              {day}
+              {hasTx && !isSelected && <div style={{ position: 'absolute', bottom: 3, left: '50%', transform: 'translateX(-50%)', width: 4, height: 4, borderRadius: 2, background: t.accent }}/>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initialMonthIdx, tablet = false }) => {
   const t = T(theme);
   // Mock data lives in April (abr = index 3)
   const [monthIdx, setMonthIdx] = useState(initialMonthIdx ?? MOCK_TX_MONTH_INDEX);
   const [filters, setFilters]   = useState(() => mergeHistoryFilters(initialFilters));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState(null); // for tablet detail pane
+  const [selectedDay, setSelectedDay] = useState(null); // for tablet calendar
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
 
@@ -338,6 +380,123 @@ export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initi
     </div>
   );
 
+  // Build set of days that have transactions (for calendar dots)
+  const txDays = new Set(
+    filtered.map(tx => {
+      if (tx.date === 'Hoy') return 30;
+      if (tx.date === 'Ayer') return 29;
+      const m = tx.date.match(/(\d+)/);
+      return m ? parseInt(m[1]) : null;
+    }).filter(Boolean)
+  );
+
+  // If a day is selected in tablet mode, further filter by that day
+  const dayFiltered = selectedDay ? filtered.filter(tx => {
+    if (selectedDay === 30 && tx.date === 'Hoy') return true;
+    if (selectedDay === 29 && tx.date === 'Ayer') return true;
+    const m = tx.date.match(/(\d+)/);
+    return m ? parseInt(m[1]) === selectedDay : false;
+  }) : filtered;
+
+  const dayGrouped = dayFiltered.reduce((acc, tx) => {
+    (acc[tx.date] = acc[tx.date] || []).push(tx);
+    return acc;
+  }, {});
+
+  // ── Shared TX list content ─────────────────────────────────────────────────
+  const renderTxList = (txList, groups, isTabletPane = false) => (
+    <div>
+      {txList.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: t.text2 }}>
+          <div style={{ fontSize: 30, marginBottom: 8 }}>📭</div>
+          <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Sin movimientos</div>
+          <div style={{ fontSize: 11.5 }}>
+            {selectedDay ? `No hay movimientos el día ${selectedDay}` : `No hay transacciones en ${MONTHS[monthIdx].toLowerCase()}.`}
+          </div>
+        </div>
+      )}
+      {Object.entries(groups).map(([date, txs]) => (
+        <div key={date} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6, paddingLeft: 4 }}>{date}</div>
+          <Card theme={theme} padding={14} radius={16}>
+            {txs.map((tx, i) => {
+              const cat = PELAS_CATEGORIES.find(c => c.id === tx.cat);
+              return (
+                <div key={tx.id}>
+                  <TxRow theme={theme} tx={tx} cat={cat} onClick={() => isTabletPane ? setSelectedTx(tx) : onNavigate('tx-detail', { tx })}
+                    style={isTabletPane && selectedTx?.id === tx.id ? { background: t.accentSoft } : {}}
+                  />
+                  {i < txs.length - 1 && <div style={{ height: 1, background: t.border, margin: '2px 0' }}/>}
+                </div>
+              );
+            })}
+          </Card>
+        </div>
+      ))}
+    </div>
+  );
+
+  // ── TABLET layout ──────────────────────────────────────────────────────────
+  if (tablet) {
+    return (
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {/* Header */}
+        <PelasHeader theme={theme} title="Historial" onBack={onBack} action={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <IconBtn icon="search" onClick={() => onNavigate('search')}/>
+            <IconBtn icon="filter" onClick={() => setDrawerOpen(true)} active={activeCount > 0} badge={activeCount}/>
+          </div>
+        }/>
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Left: Calendar */}
+          <div style={{ width: 280, borderRight: `1px solid ${t.border}`, overflowY: 'auto', padding: '14px 16px', flexShrink: 0 }}>
+            {/* Month nav */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+              <div onClick={prevMonth} style={{ width: 30, height: 30, borderRadius: 15, background: t.surface2, border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: monthIdx === 0 ? 0.3 : 1, flexShrink: 0 }}>
+                <PelasIcon name="arrow-left" size={13} color={t.text2}/>
+              </div>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>{MONTHS[monthIdx]}</div>
+                <div style={{ fontSize: 10, color: t.text2 }}>2025</div>
+              </div>
+              <div onClick={nextMonth} style={{ width: 30, height: 30, borderRadius: 15, background: t.surface2, border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: monthIdx === 11 ? 0.3 : 1, flexShrink: 0 }}>
+                <PelasIcon name="arrow-right" size={13} color={t.text2}/>
+              </div>
+            </div>
+            <MiniCalendar theme={theme} monthIdx={monthIdx} onSelectDay={setSelectedDay} selectedDay={selectedDay} txDays={txDays}/>
+            {/* Summary */}
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ padding: '10px 12px', background: 'rgba(63,185,132,0.10)', borderRadius: 10 }}>
+                <div style={{ fontSize: 9.5, color: t.text2 }}>Ingresos</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: t.positive }}>+{totalIn.toFixed(2)} €</div>
+              </div>
+              <div style={{ padding: '10px 12px', background: 'rgba(225,99,100,0.10)', borderRadius: 10 }}>
+                <div style={{ fontSize: 9.5, color: t.text2 }}>Gastos</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: t.negative }}>−{totalOut.toFixed(2)} €</div>
+              </div>
+            </div>
+          </div>
+          {/* Right: list OR detail */}
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+            {/* Transaction list */}
+            <div style={{ flex: selectedTx ? '0 0 55%' : 1, overflowY: 'auto', padding: '12px 16px', borderRight: selectedTx ? `1px solid ${t.border}` : 'none' }}>
+              {selectedDay && <div style={{ fontSize: 11, color: t.accent, fontWeight: 600, marginBottom: 10 }}>Día {selectedDay} · {filtered.filter(tx => txDays.has(selectedDay)).length} movimientos <span onClick={() => setSelectedDay(null)} style={{ cursor: 'pointer', color: t.text3, fontWeight: 400 }}>✕ limpiar</span></div>}
+              {renderTxList(dayFiltered, dayGrouped, true)}
+            </div>
+            {/* Detail pane */}
+            {selectedTx && (
+              <div style={{ flex: 1, overflowY: 'auto', animation: 'slideInRight 0.2s ease-out' }}>
+                <TxDetailScreen theme={theme} tx={selectedTx} onBack={() => setSelectedTx(null)} onNavigate={onNavigate}/>
+              </div>
+            )}
+          </div>
+        </div>
+        <FilterDrawer theme={theme} open={drawerOpen} onClose={() => setDrawerOpen(false)} filters={filters} setFilters={setFilters} count={filtered.length} onApply={() => setDrawerOpen(false)} onReset={() => setFilters(DEFAULT_FILTERS)}/>
+      </div>
+    );
+  }
+
+  // ── PHONE layout ──────────────────────────────────────────────────────────
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}
       onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
@@ -379,7 +538,7 @@ export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initi
             </div>
           )}
 
-          {/* Summary: Ingresos / Gastos / Neto */}
+          {/* Summary */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
             <div style={{ flex: 1, padding: '10px 10px', background: 'rgba(63,185,132,0.10)', borderRadius: 12 }}>
               <div style={{ fontSize: 9.5, color: t.text2 }}>Ingresos</div>
@@ -397,29 +556,7 @@ export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initi
 
           {/* Transaction list */}
           <div style={{ marginTop: 4 }}>
-            {filtered.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '48px 20px', color: t.text2 }}>
-                <div style={{ fontSize: 30, marginBottom: 8 }}>📭</div>
-                <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>Sin movimientos</div>
-                <div style={{ fontSize: 11.5 }}>No hay transacciones en {MONTHS[monthIdx].toLowerCase()}.</div>
-              </div>
-            )}
-            {Object.entries(grouped).map(([date, txs]) => (
-              <div key={date} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 6, paddingLeft: 4 }}>{date}</div>
-                <Card theme={theme} padding={14} radius={16}>
-                  {txs.map((tx, i) => {
-                    const cat = PELAS_CATEGORIES.find(c => c.id === tx.cat);
-                    return (
-                      <div key={tx.id}>
-                        <TxRow theme={theme} tx={tx} cat={cat} onClick={() => onNavigate('tx-detail', { tx })}/>
-                        {i < txs.length - 1 && <div style={{ height: 1, background: t.border, margin: '2px 0' }}/>}
-                      </div>
-                    );
-                  })}
-                </Card>
-              </div>
-            ))}
+            {renderTxList(filtered, grouped, false)}
           </div>
         </div>
       </div>

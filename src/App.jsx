@@ -100,7 +100,7 @@ export default function App() {
 
     if (tab === 'home')   return <HomeScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'} familyGroup={familyGroup}/>;
     if (tab === 'stats')  return <StatsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
-    if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')}/>;
+    if (tab === 'tx')     return <HistoryScreen theme={theme} onNavigate={navigate} onBack={() => setTab('home')} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
     if (tab === 'invest') return <InvestmentsScreen theme={theme} onNavigate={navigate} tablet={deviceMode === 'tablet'} tabletVertical={deviceMode === 'tablet-v'}/>;
     return null;
   };
