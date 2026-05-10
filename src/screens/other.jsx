@@ -122,7 +122,11 @@ const FilterDrawer = ({ theme, open, onClose, filters, setFilters, onApply, onRe
       return { ...prev, [key]: arr.includes(value) ? arr.filter(v => v !== value) : [...arr, value] };
     });
   };
-  const allLocations = [...new Set(PELAS_TRANSACTIONS.map(tx => tx.location).filter(Boolean))];
+  const allCities = [...new Set(PELAS_TRANSACTIONS.map(tx => {
+    if (!tx.location) return null;
+    // Extract city: take the part before '·' or return the whole string if no '·'
+    return tx.location.split('·')[0].trim();
+  }).filter(Boolean))];
   const allCards = [...new Set(PELAS_TRANSACTIONS.map(tx => tx.card))];
   return (
     <>
@@ -216,16 +220,29 @@ const FilterDrawer = ({ theme, open, onClose, filters, setFilters, onApply, onRe
             </div>
           </FilterSection>
           <FilterSection theme={theme} title="Ubicación" count={filters.locations.length}>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {allLocations.map(loc => {
-                const active = filters.locations.includes(loc);
-                return (
-                  <div key={loc} onClick={() => togglePill('locations', loc)} style={{ padding: '7px 12px', borderRadius: 100, cursor: 'pointer', fontSize: 11, fontWeight: 500, background: active ? t.accent + '22' : t.surface2, color: active ? t.accent : t.text2, border: `1px solid ${active ? t.accent : 'transparent'}`, display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.15s' }}>
-                    <span style={{ fontSize: 11 }}>📍</span>{loc}
-                  </div>
-                );
-              })}
+            <div style={{ position: 'relative' }}>
+              <select
+                value={filters.locations[0] || ''}
+                onChange={e => {
+                  const v = e.target.value;
+                  setFilters(p => ({ ...p, locations: v ? [v] : [] }));
+                }}
+                style={{ width: '100%', height: 44, borderRadius: 12, background: t.surface2, border: `1px solid ${filters.locations.length ? t.accent : t.border}`, color: filters.locations.length ? t.accent : t.text2, fontFamily: 'inherit', fontSize: 13, padding: '0 14px', outline: 'none', appearance: 'none', cursor: 'pointer' }}
+              >
+                <option value="">Todas las ciudades</option>
+                {allCities.map(city => (
+                  <option key={city} value={city} style={{ color: '#1E1E2D', background: '#fff' }}>{city}</option>
+                ))}
+              </select>
+              <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+                <PelasIcon name="chevron-right" size={14} color={t.text2} style={{ transform: 'rotate(90deg)' }}/>
+              </div>
             </div>
+            {filters.locations.length > 0 && (
+              <div onClick={() => setFilters(p => ({ ...p, locations: [] }))} style={{ marginTop: 8, fontSize: 11.5, color: t.accent, cursor: 'pointer', fontWeight: 500 }}>
+                Limpiar ciudad
+              </div>
+            )}
           </FilterSection>
           <FilterSection theme={theme} title="Ordenar por">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6 }}>
@@ -284,7 +301,7 @@ export const HistoryScreen = ({ theme, onNavigate, onBack, initialFilters, initi
     if (filters.accounts.length   && !filters.accounts.includes(tx.account))  return false;
     if (filters.categories.length && !filters.categories.includes(tx.cat))    return false;
     if (filters.cards.length      && !filters.cards.includes(tx.card))        return false;
-    if (filters.locations.length  && !filters.locations.includes(tx.location))return false;
+    if (filters.locations.length  && !filters.locations.some(city => tx.location?.startsWith(city))) return false;
     const abs = Math.abs(tx.amount);
     if (abs < filters.amountMin || abs > filters.amountMax) return false;
     return true;
