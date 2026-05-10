@@ -1540,7 +1540,7 @@ const HomeVariantA = ({ theme, onNavigate, tablet = false, tabletVertical = fals
   const widgetArea = (tablet && !tabletVertical) ? (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' }}>
       {active.map(w => (
-        <div key={w.id} style={{ gridColumn: tabletGridCol(w.tabletCol || 'full') }}>
+        <div key={w.id} style={{ gridColumn: tabletGridCol(w.tabletCol || 'full'), minWidth: 0 }}>
           {renderWidget(w)}
         </div>
       ))}

@@ -3758,7 +3758,7 @@ export const StatsScreen = ({ theme, onNavigate, tablet = false, tabletVertical 
         {(tablet && !tabletVertical) ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' }}>
             {active.map(w => (
-              <div key={w.id} style={{ gridColumn: STATS_FULL_WIDTH.has(w.id) ? '1 / -1' : 'auto' }}>
+              <div key={w.id} style={{ gridColumn: STATS_FULL_WIDTH.has(w.id) ? '1 / -1' : 'auto', minWidth: 0 }}>
                 {renderWidget(w)}
               </div>
             ))}

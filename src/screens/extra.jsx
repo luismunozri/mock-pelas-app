@@ -707,7 +707,7 @@ const AddInvestmentSheet = ({ theme, holdings, onClose }) => {
 
 // ── Main Investments Screen ───────────────────────────────────────────────────
 
-export const InvestmentsScreen = ({ theme, onNavigate }) => {
+export const InvestmentsScreen = ({ theme, onNavigate, tablet = false, tabletVertical = false }) => {
   const t = T(theme);
   const [filter, setFilter] = useState('Todos');
   const [chartPeriod, setChartPeriod] = useState('1M');
@@ -826,97 +826,102 @@ export const InvestmentsScreen = ({ theme, onNavigate }) => {
           </div>
         </div>
 
-        {/* Alertas widget */}
-        {alerts.length > 0 && (
-          <>
-            <SectionTitle theme={theme} title="Mis alertas" action="+ Nueva" onAction={() => setShowSearch(true)}/>
-            <Card theme={theme} padding={0} radius={18} style={{ marginBottom: 22 }}>
-              {alerts.map((al, i) => (
-                <div key={al.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < alerts.length - 1 ? `1px solid ${t.border}` : 'none' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 11, background: al.triggered ? '#FFC234' + '20' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <PelasIcon name="bell" size={15} color={al.triggered ? '#FFC234' : t.text2}/>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{al.symbol} <span style={{ fontSize: 11, color: t.text2, fontWeight: 400 }}>{al.name}</span></div>
-                    <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>
-                      Alerta: <span style={{ fontWeight: 600, color: t.text }}>{al.targetPrice.toLocaleString('es-ES')} €</span>
-                      {' · '}Actual: <span style={{ fontWeight: 600 }}>{al.currentPrice.toLocaleString('es-ES')} €</span>
-                    </div>
-                  </div>
-                  {al.triggered && <div style={{ fontSize: 10, fontWeight: 700, color: '#FFC234', background: '#FFC234' + '20', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>ACTIVA</div>}
-                  <div onClick={() => setAlerts(prev => prev.filter(a => a.id !== al.id))} style={{ width: 28, height: 28, borderRadius: 8, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                    <PelasIcon name="x" size={12} color={t.text2}/>
-                  </div>
-                </div>
-              ))}
-            </Card>
-          </>
-        )}
+        {/* Widgets area — 2-col on tablet H */}
+        <div style={tablet && !tabletVertical ? { display: 'grid', gridTemplateColumns: '1fr 1fr', columnGap: 12, alignItems: 'start' } : {}}>
 
-        {/* Distribución */}
-        {isEnabled('distribution') && (
-          <>
-            <SectionTitle theme={theme} title="Distribución" action="Detalles"/>
-            <Card theme={theme} padding={16} radius={18} style={{ marginBottom: 22 }}>
-              <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
-                {allocByType.map(a => <div key={a.type} style={{ width: `${(a.sum / total) * 100}%`, background: a.color }}/>)}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                {allocByType.map(a => (
-                  <div key={a.type} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 4, background: a.color }}/>
-                    <div style={{ fontSize: 12, color: t.text }}>{a.type}</div>
-                    <div style={{ marginLeft: 'auto', fontSize: 11.5, color: t.text2, fontWeight: 500 }}>{Math.round((a.sum / total) * 100)}%</div>
+          {/* Alertas */}
+          {alerts.length > 0 && (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <SectionTitle theme={theme} title="Mis alertas" action="+ Nueva" onAction={() => setShowSearch(true)}/>
+              <Card theme={theme} padding={0} radius={18} style={{ marginBottom: 22 }}>
+                {alerts.map((al, i) => (
+                  <div key={al.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < alerts.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 11, background: al.triggered ? '#FFC234' + '20' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PelasIcon name="bell" size={15} color={al.triggered ? '#FFC234' : t.text2}/>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{al.symbol} <span style={{ fontSize: 11, color: t.text2, fontWeight: 400 }}>{al.name}</span></div>
+                      <div style={{ fontSize: 11, color: t.text2, marginTop: 2 }}>
+                        Alerta: <span style={{ fontWeight: 600, color: t.text }}>{al.targetPrice.toLocaleString('es-ES')} €</span>
+                        {' · '}Actual: <span style={{ fontWeight: 600 }}>{al.currentPrice.toLocaleString('es-ES')} €</span>
+                      </div>
+                    </div>
+                    {al.triggered && <div style={{ fontSize: 10, fontWeight: 700, color: '#FFC234', background: '#FFC234' + '20', padding: '3px 8px', borderRadius: 6, flexShrink: 0 }}>ACTIVA</div>}
+                    <div onClick={() => setAlerts(prev => prev.filter(a => a.id !== al.id))} style={{ width: 28, height: 28, borderRadius: 8, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                      <PelasIcon name="x" size={12} color={t.text2}/>
+                    </div>
                   </div>
                 ))}
-              </div>
-            </Card>
-          </>
-        )}
-
-        {/* Mis posiciones */}
-        {isEnabled('positions') && (
-          <>
-            <SectionTitle theme={theme} title="Mis posiciones" action="Ver todo" onAction={() => setShowPositions(true)}/>
-            <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', marginRight: -22, paddingRight: 22 }}>
-              {['Todos','ETF','Acción','Cripto','Fondo'].map(f => (
-                <div key={f} onClick={() => setFilter(f)} style={{ padding: '6px 14px', borderRadius: 100, fontSize: 11.5, cursor: 'pointer', background: filter === f ? t.accent : t.surface, color: filter === f ? '#fff' : t.text2, border: `1px solid ${filter === f ? t.accent : t.border}`, fontWeight: 500, flexShrink: 0 }}>{f}</div>
-              ))}
+              </Card>
             </div>
-            <Card theme={theme} padding={0} radius={18} style={{ marginBottom: 22 }}>
-              {filtered.map((h, i) => <HoldingRow key={h.id} theme={theme} h={h} last={i === filtered.length - 1}/>)}
-            </Card>
-          </>
-        )}
+          )}
 
-        {/* Seguimiento de acciones */}
-        {isEnabled('watchlist') && (
-          <>
-            <SectionTitle theme={theme} title="Seguimiento" action="+ Añadir" onAction={() => setShowSearch(true)}/>
-            <Card theme={theme} padding={0} radius={18}>
-              {watchlist.map((s, i) => (
-                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: i < watchlist.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: s.sparkColor === '#3FB984' ? 'rgba(63,185,132,0.12)' : 'rgba(225,99,100,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: s.changePct >= 0 ? '#3FB984' : '#E16364', letterSpacing: -0.3 }}>{s.symbol.slice(0,4)}</div>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.symbol}</div>
-                    <div style={{ fontSize: 11, color: t.text2 }}>{s.name}</div>
-                  </div>
-                  <div style={{ width: 50, height: 28 }}>
-                    <Sparkline data={s.spark} width={50} height={28} color={s.sparkColor} fill={false}/>
-                  </div>
-                  <div style={{ textAlign: 'right', minWidth: 70, flexShrink: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{s.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: s.changePct >= 0 ? '#3FB984' : '#E16364' }}>
-                      {s.changePct >= 0 ? '+' : ''}{s.changePct.toFixed(2)}%
+          {/* Distribución */}
+          {isEnabled('distribution') && (
+            <div style={{ minWidth: 0 }}>
+              <SectionTitle theme={theme} title="Distribución" action="Detalles"/>
+              <Card theme={theme} padding={16} radius={18} style={{ marginBottom: 22 }}>
+                <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 12 }}>
+                  {allocByType.map(a => <div key={a.type} style={{ width: `${(a.sum / total) * 100}%`, background: a.color }}/>)}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+                  {allocByType.map(a => (
+                    <div key={a.type} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 4, background: a.color }}/>
+                      <div style={{ fontSize: 12, color: t.text }}>{a.type}</div>
+                      <div style={{ marginLeft: 'auto', fontSize: 11.5, color: t.text2, fontWeight: 500 }}>{Math.round((a.sum / total) * 100)}%</div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Seguimiento */}
+          {isEnabled('watchlist') && (
+            <div style={{ minWidth: 0 }}>
+              <SectionTitle theme={theme} title="Seguimiento" action="+ Añadir" onAction={() => setShowSearch(true)}/>
+              <Card theme={theme} padding={0} radius={18} style={{ marginBottom: 22 }}>
+                {watchlist.map((s, i) => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '13px 16px', borderBottom: i < watchlist.length - 1 ? `1px solid ${t.border}` : 'none', cursor: 'pointer' }}>
+                    <div style={{ width: 38, height: 38, borderRadius: 12, background: s.sparkColor === '#3FB984' ? 'rgba(63,185,132,0.12)' : 'rgba(225,99,100,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: s.changePct >= 0 ? '#3FB984' : '#E16364', letterSpacing: -0.3 }}>{s.symbol.slice(0,4)}</div>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.symbol}</div>
+                      <div style={{ fontSize: 11, color: t.text2 }}>{s.name}</div>
+                    </div>
+                    <div style={{ width: 50, height: 28 }}>
+                      <Sparkline data={s.spark} width={50} height={28} color={s.sparkColor} fill={false}/>
+                    </div>
+                    <div style={{ textAlign: 'right', minWidth: 70, flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{s.price.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</div>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: s.changePct >= 0 ? '#3FB984' : '#E16364' }}>
+                        {s.changePct >= 0 ? '+' : ''}{s.changePct.toFixed(2)}%
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </Card>
-          </>
-        )}
+                ))}
+              </Card>
+            </div>
+          )}
+
+          {/* Mis posiciones — full width */}
+          {isEnabled('positions') && (
+            <div style={{ gridColumn: tablet && !tabletVertical ? '1 / -1' : undefined, minWidth: 0 }}>
+              <SectionTitle theme={theme} title="Mis posiciones" action="Ver todo" onAction={() => setShowPositions(true)}/>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 12, overflowX: 'auto', marginRight: -22, paddingRight: 22 }}>
+                {['Todos','ETF','Acción','Cripto','Fondo'].map(f => (
+                  <div key={f} onClick={() => setFilter(f)} style={{ padding: '6px 14px', borderRadius: 100, fontSize: 11.5, cursor: 'pointer', background: filter === f ? t.accent : t.surface, color: filter === f ? '#fff' : t.text2, border: `1px solid ${filter === f ? t.accent : t.border}`, fontWeight: 500, flexShrink: 0 }}>{f}</div>
+                ))}
+              </div>
+              <Card theme={theme} padding={0} radius={18} style={{ marginBottom: 22 }}>
+                {filtered.map((h, i) => <HoldingRow key={h.id} theme={theme} h={h} last={i === filtered.length - 1}/>)}
+              </Card>
+            </div>
+          )}
+
+        </div>
       </div>
 
       {/* Modals */}
