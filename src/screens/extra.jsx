@@ -129,6 +129,13 @@ export const AddTransactionSheet = ({ theme, onClose }) => {
                       <div style={{ fontSize: 10, color: t.text2, textAlign: 'center' }}>{c.label.split(' ')[0]}</div>
                     </div>
                   ))}
+                  {/* Añadir categoría */}
+                  <div onClick={() => setCategoryOpen(false)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: 6, borderRadius: 10, cursor: 'pointer' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 12, background: t.surface2, border: `1.5px dashed ${t.borderStrong}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <PelasIcon name="plus" size={15} color={t.accent} strokeWidth={2.4}/>
+                    </div>
+                    <div style={{ fontSize: 10, color: t.accent, textAlign: 'center', fontWeight: 500 }}>Añadir</div>
+                  </div>
                 </div>
               )}
             </>
