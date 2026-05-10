@@ -288,8 +288,13 @@ export const AccountsScreen = ({ theme, onBack, onNavigate, initialFilters, fami
   const AccountRow = ({ a }) => (
     <Card key={a.id} theme={theme} padding={16} radius={18} style={{ position: 'relative' }} onClick={() => onNavigate?.('account-detail', { account: a })}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, cursor: 'pointer' }}>
-        <div style={{ width: 46, height: 46, borderRadius: 15, background: a.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <PelasIcon name={a.icon} size={20} color={a.color}/>
+        <div style={{ width: 46, height: 46, borderRadius: 15, background: a.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, position: 'relative' }}>
+          <PelasIcon name={a.shared ? 'people' : a.icon} size={20} color={a.color}/>
+          {a.shared && (
+            <div style={{ position: 'absolute', bottom: -2, right: -2, width: 16, height: 16, borderRadius: 8, background: a.color, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `2px solid ${t.surface}` }}>
+              <PelasIcon name="check" size={8} color="#fff" strokeWidth={3}/>
+            </div>
+          )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
