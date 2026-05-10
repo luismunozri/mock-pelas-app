@@ -5,7 +5,7 @@ import { Card, SectionTitle, TxRow, Progress, Sparkline, CreditCard, Donut } fro
 import {
   PELAS_ACCOUNTS, PELAS_CARDS, PELAS_TRANSACTIONS, PELAS_CATEGORIES,
   PELAS_SERIES_30D, PELAS_BUDGETS, PELAS_GOALS, PELAS_HOLDINGS, PELAS_USER,
-  PELAS_INCOME_CATEGORIES,
+  PELAS_INCOME_CATEGORIES, PELAS_LOANS,
 } from '../data';
 
 const CARD_COLORS = [
@@ -74,6 +74,7 @@ const DEFAULT_WIDGETS = [
   { id: 'donut-both',       label: 'Gastos e ingresos combinado', icon: 'chart',    enabled: true, tabletCol: 'full'  },
   { id: 'shared-accounts',  label: 'Cuentas compartidas',         icon: 'people',   enabled: true, tabletCol: 'full'  },
   { id: 'goals',            label: 'Objetivos de ahorro',         icon: 'shield',   enabled: true, tabletCol: 'full'  },
+  { id: 'loans',            label: 'Mis préstamos',               icon: 'home',     enabled: true, tabletCol: 'left'  },
 ];
 
 const DEFAULT_WIDGET_SETTINGS = {
@@ -85,11 +86,13 @@ const DEFAULT_WIDGET_SETTINGS = {
   budgets:      { order: ['b1','b2','b3','b4'], hidden: [] },
   'donut-both': { period: 'month' },
   goals:        { order: ['g1','g2','g3'], hidden: [] },
+  loans:        {},
 };
 
 const WIDGETS_WITH_SETTINGS = [
   'balance','accounts','transactions','cards',
   'budget-bar','budgets','donut-both','goals',
+  'loans',
 ];
 
 // ── Individual widget renderers ───────────────────────────────────────────────
@@ -581,6 +584,90 @@ const WidgetSharedAccounts = ({ theme, onNavigate, familyGroup }) => {
           </Card>
         </>
       )}
+    </div>
+  );
+};
+
+// ── Widget: Mis préstamos ─────────────────────────────────────────────────────
+
+const WidgetLoans = ({ theme, onNavigate }) => {
+  const t = T(theme);
+  const activeLoans = PELAS_LOANS.filter(l => l.status === 'active');
+  const totalDebt    = activeLoans.reduce((s, l) => s + l.remaining, 0);
+  const totalMonthly = activeLoans.reduce((s, l) => s + l.monthlyPayment, 0);
+  const totalOrig    = activeLoans.reduce((s, l) => s + l.totalAmount, 0);
+  const overallPct   = totalOrig > 0 ? Math.round((totalOrig - totalDebt) / totalOrig * 100) : 0;
+
+  if (activeLoans.length === 0) {
+    return (
+      <div style={{ marginBottom: 22 }}>
+        <SectionTitle theme={theme} title="Mis préstamos" action="Gestionar" onAction={() => onNavigate('loans')}/>
+        <Card theme={theme} padding={20} radius={20}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PelasIcon name="check" size={20} color={t.accent} strokeWidth={2.5}/>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 600 }}>Sin deudas activas</div>
+            <div style={{ fontSize: 11.5, color: t.text2 }}>¡Enhorabuena!</div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Mis préstamos" action="Ver todo" onAction={() => onNavigate('loans')}/>
+      <Card theme={theme} padding={16} radius={20}>
+        {/* Summary row */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 10.5, color: t.text2, marginBottom: 2 }}>Deuda total</div>
+            <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.5 }}>
+              {(totalDebt / 1000).toFixed(1).replace('.', ',')}k €
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10.5, color: t.text2 }}>Cuota/mes</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: t.negative, marginTop: 1 }}>
+              {totalMonthly.toLocaleString('es-ES', { minimumFractionDigits: 0 })} €
+            </div>
+          </div>
+        </div>
+
+        {/* Global progress */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ width: '100%', height: 5, background: t.surface2, borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ width: `${overallPct}%`, height: '100%', background: t.accent, borderRadius: 3 }}/>
+          </div>
+          <div style={{ fontSize: 10, color: t.text3, marginTop: 3, textAlign: 'right' }}>{overallPct}% amortizado</div>
+        </div>
+
+        {/* Per-loan mini rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {activeLoans.map(loan => {
+            const pct = Math.round((loan.paid / loan.totalAmount) * 100);
+            return (
+              <div key={loan.id} onClick={() => onNavigate('loans')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                <div style={{ width: 28, height: 28, borderRadius: 9, background: loan.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <PelasIcon name={loan.icon} size={13} color={loan.color}/>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{loan.name}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: loan.color, flexShrink: 0, marginLeft: 6 }}>
+                      {(loan.remaining / 1000).toFixed(1)}k €
+                    </div>
+                  </div>
+                  <div style={{ width: '100%', height: 4, background: t.surface2, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: loan.color, borderRadius: 2 }}/>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
     </div>
   );
 };
@@ -1348,7 +1435,7 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
     balance: '#0066FF', accounts: '#3FB984', transactions: '#7C5CFF',
     cards: '#FFC234', 'budget-bar': '#FF8A4C', budgets: '#FF8A4C',
     'donut-both': '#7C5CFF',
-    goals: '#1DBF7B',
+    goals: '#1DBF7B', loans: '#E16364',
   };
 
   return (
@@ -1532,6 +1619,8 @@ const HomeVariantA = ({ theme, onNavigate, tablet = false, tabletVertical = fals
         return <WidgetSharedAccounts key={w.id} theme={theme} onNavigate={onNavigate} familyGroup={familyGroup}/>;
       case 'goals':
         return <WidgetGoals key={w.id} theme={theme} onNavigate={onNavigate} settings={widgetSettings.goals}/>;
+      case 'loans':
+        return <WidgetLoans key={w.id} theme={theme} onNavigate={onNavigate}/>;
       default:
         return null;
     }

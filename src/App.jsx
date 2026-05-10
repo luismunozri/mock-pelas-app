@@ -6,6 +6,7 @@ import { OnboardingScreen, SignInScreen, SignUpScreen } from './screens/auth';
 import { HomeScreen, HomeChartDetailScreen } from './screens/home';
 import { StatsDetailScreen, StatsScreen } from './screens/stats';
 import { HistoryScreen, TxDetailScreen, ProfileScreen, CategoriesScreen, BudgetsScreen, GoalsScreen, SearchScreen, NotificationsScreen, CategoryDetailScreen, ThemeStyleScreen, PersonalDataScreen, SecurityScreen, ProfileCategoriesScreen, NotificationSettingsScreen, LanguageScreen, ExportDataScreen, ImportDataScreen, CloudBackupScreen, FamilyGroupScreen } from './screens/other';
+import { LoansScreen, LoanDetailScreen } from './screens/loans';
 import { AddTransactionSheet, InvestmentsScreen, InvestChartDetailScreen } from './screens/extra';
 import { AccountsScreen, AccountDetailScreen } from './screens/accounts';
 import { CardsScreen } from './screens/cards';
@@ -100,6 +101,8 @@ export default function App() {
     if (route.name === 'accounts')        return <AccountsScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate} initialFilters={route.filters} familyGroup={familyGroup}/>;
     if (route.name === 'account-detail')  return <AccountDetailScreen theme={theme} account={route.account} onBack={() => setRoute({ name: 'accounts' })}/>;
     if (route.name === 'cards')           return <CardsScreen theme={theme} onBack={() => setRoute({ name: 'main' })}/>;
+    if (route.name === 'loans')           return <LoansScreen theme={theme} onBack={() => setRoute({ name: 'main' })} onNavigate={navigate}/>;
+    if (route.name === 'loan-detail')     return <LoanDetailScreen theme={theme} loan={route.loan} onBack={() => setRoute({ name: 'loans' })}/>;
     if (route.name === 'stats-detail')    return <StatsDetailScreen theme={theme} widgetId={route.widgetId} onBack={() => { setTab('stats'); setRoute({ name: 'main' }); }} onNavigate={navigate}/>;
     if (route.name === 'home-chart')      return <HomeChartDetailScreen theme={theme} settings={route.settings} onBack={() => { setTab('home'); setRoute({ name: 'main' }); }}/>;
     if (route.name === 'invest-chart')    return <InvestChartDetailScreen theme={theme} chartPeriod={route.chartPeriod} onBack={() => { setTab('invest'); setRoute({ name: 'main' }); }}/>;
@@ -166,6 +169,7 @@ export default function App() {
           ['Tarjetas',    () => setRoute({ name: 'cards' })],
           ['Presupuestos',() => setRoute({ name: 'budgets' })],
           ['Metas',       () => setRoute({ name: 'goals' })],
+          ['Préstamos',   () => setRoute({ name: 'loans' })],
           ['Notificaciones',() => setRoute({ name: 'notifications' })],
         ].map(([label, fn]) => (
           <div key={label} onClick={fn} style={{

@@ -683,9 +683,10 @@ const VER_ITEMS = [
   { icon: 'shield',   label: 'Metas',              color: '#3FB984', onClick: (nav) => nav('goals') },
   { icon: 'wallet',   label: 'Movimientos',        color: '#7C5CFF', onClick: (nav) => nav('tab-tx') },
   { icon: 'card',     label: 'Tarjetas',           color: '#FFC234', onClick: (nav) => nav('cards') },
+  { icon: 'home',     label: 'Préstamos',          color: '#E16364', onClick: (nav) => nav('loans') },
   { icon: 'trending', label: 'Seguimiento',        color: '#5B8DEF', onClick: (nav) => nav('tab-invest', { section: 'watchlist-search' }) },
-  { icon: 'chart',    label: 'Portfolio',          color: '#E16364', onClick: (nav) => nav('tab-invest', { section: 'positions' }) },
-  { icon: 'bell',     label: 'Alertas inversión',  color: '#FFC234', onClick: (nav) => nav('tab-invest', { section: 'alerts' }) },
+  { icon: 'chart',    label: 'Portfolio',          color: '#0066FF', onClick: (nav) => nav('tab-invest', { section: 'positions' }) },
+  { icon: 'bell',     label: 'Alertas inv.',       color: '#FFC234', onClick: (nav) => nav('tab-invest', { section: 'alerts' }) },
 ];
 
 export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
@@ -756,7 +757,7 @@ export const ProfileScreen = ({ theme, onNavigate, onBack, setTheme }) => {
       {/* ── Sección Ver ─────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: 22 }}>
         <div style={{ fontSize: 11, color: t.text2, fontWeight: 600, letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 10, paddingLeft: 4 }}>Ver</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
           {VER_ITEMS.map(item => (
             <div key={item.label} onClick={() => item.onClick(onNavigate)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '14px 8px', borderRadius: 18, background: t.surface, border: `1px solid ${t.border}`, cursor: 'pointer', transition: 'transform 0.1s, box-shadow 0.1s', userSelect: 'none' }}
               onMouseDown={e => e.currentTarget.style.transform = 'scale(0.96)'}

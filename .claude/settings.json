@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\DATA\\\\Code\\\\Mock\\\\pelas-app\" -Force)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\DATA\\\\Code\\\\Mock\\\\pelas-app\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'Dir'}else{'File'}}} | Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"d:\\\\DATA\\\\Code\\\\Mock\\\\pelas-app\\\\src\" -Filter \"*.jsx\" -File)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: corregir gráficas negras usando style en lugar de atributos SVG para CSS variables *)",
+      "Bash(git commit -m 'feat: modo landscape al pulsar gráfica de Visión Global en Home *)",
+      "Bash(git commit -m 'feat: añadir botón '\\\\''Añadir cuenta nueva'\\\\'' al final del carrusel de cuentas *)",
+      "Bash(git commit -m 'feat: añadir tarjeta '\\\\''Añadir meta'\\\\'' al final del carrusel de Mis metas *)",
+      "Bash(git commit -m 'feat: widget Presupuesto con carousel semanal/mensual/anual y swipe *)",
+      "Bash(git commit -m 'feat: período personalizado con fecha inicio/fin en formulario de presupuesto *)",
+      "Bash(git commit -m 'feat: card de resumen en Presupuestos deslizable entre semanal/mensual/anual *)",
+      "Bash(git commit -m 'feat: icono de familia para cuentas compartidas en la vista de cuentas *)",
+      "Bash(git commit -m 'feat: opción '\\\\''Añadir categoría'\\\\'' en el desplegable de categorías del formulario de movimiento *)",
+      "Bash(git commit -m 'feat: mapa de ubicación y menú editar/eliminar en detalle de movimiento *)",
+      "Bash(git commit -m 'feat: filtro de ubicación en movimientos muestra solo ciudades en desplegable *)",
+      "Bash(git commit -m 'feat: mejoras completas en la vista de Inversiones \\(tareas 13-16\\) *)",
+      "Bash(git commit -m 'feat: layouts de dos columnas en tablet para Home, Stats e Inversiones \\(tareas 17-19\\) *)",
+      "Bash(git commit -m 'feat: vista de Movimientos en tablet con calendario mensual + lista + detalle *)",
+      "Bash(npm run *)",
+      "Bash(git commit -m 'feat: sección '\\\\''Ver'\\\\'' en Perfil con acceso rápido a todas las secciones de la app *)",
+      "Bash(git commit -m 'feat: funcionalidad completa de gestión de préstamos *)"
+    ]
+  }
+}

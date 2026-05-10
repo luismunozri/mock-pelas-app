@@ -2,7 +2,7 @@ import { useState, useRef, useId } from 'react';
 import { PelasIcon } from '../icons';
 import { T } from '../theme';
 import { Card, Progress, Sparkline, BarChart, Donut } from '../components';
-import { PELAS_BALANCE, PELAS_CATEGORIES, PELAS_MONTHLY, PELAS_SERIES_30D, PELAS_INCOME_CATEGORIES, PELAS_ACCOUNTS, PELAS_BUDGETS, PELAS_GOALS, PELAS_TRANSACTIONS } from '../data';
+import { PELAS_BALANCE, PELAS_CATEGORIES, PELAS_MONTHLY, PELAS_SERIES_30D, PELAS_INCOME_CATEGORIES, PELAS_ACCOUNTS, PELAS_BUDGETS, PELAS_GOALS, PELAS_TRANSACTIONS, PELAS_LOANS } from '../data';
 import { MOCK_TX_MONTH_INDEX, MOCK_TX_YEAR, getMockTxDate, txMatchesDateRange } from '../mockDates';
 
 // ── Shared micro-components ───────────────────────────────────────────────────
@@ -1513,6 +1513,196 @@ const WidgetStatsGoalsRate = ({ theme, onInfo }) => {
   );
 };
 
+// ── Widget: Deudas y préstamos ────────────────────────────────────────────────
+
+const WidgetStatsLoans = ({ theme, onInfo }) => {
+  const t = T(theme);
+  const [view, setView] = useState('summary'); // 'summary' | 'breakdown' | 'timeline'
+  const activeLoans  = PELAS_LOANS.filter(l => l.status === 'active');
+  const totalDebt    = activeLoans.reduce((s, l) => s + l.remaining, 0);
+  const totalMonthly = activeLoans.reduce((s, l) => s + l.monthlyPayment, 0);
+  const totalOrig    = activeLoans.reduce((s, l) => s + l.totalAmount, 0);
+  const totalPaid    = activeLoans.reduce((s, l) => s + l.paid, 0);
+  const overallPct   = totalOrig > 0 ? Math.round((totalPaid / totalOrig) * 100) : 0;
+  const totalInterest = activeLoans.reduce((l, loan) => {
+    const mo = (loan.remaining * loan.interestRate / 100) / 12;
+    return l + mo * loan.monthsRemaining;
+  }, 0);
+
+  // Debt by type for donut
+  const donutData = activeLoans.map(loan => ({ v: loan.remaining, color: loan.color }));
+
+  // Monthly obligations breakdown
+  const incomeMonthly = 3120; // from PELAS_BALANCE
+  const debtRatio = Math.round((totalMonthly / incomeMonthly) * 100);
+
+  // Timeline projection (months 1-12: sum of remaining debts)
+  const timelineData = Array.from({ length: 12 }, (_, i) => {
+    return activeLoans.reduce((s, loan) => {
+      const pctDone = (loan.monthsTotal - loan.monthsRemaining + i) / loan.monthsTotal;
+      return s + Math.max(0, loan.totalAmount * (1 - pctDone));
+    }, 0);
+  });
+
+  const viewOpts = [
+    { id: 'summary',   label: 'Resumen' },
+    { id: 'breakdown', label: 'Desglose' },
+    { id: 'timeline',  label: 'Proyección' },
+  ];
+
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <StatsWidgetTitle theme={theme} title="Préstamos y deudas" onInfo={onInfo}/>
+      <Card theme={theme} padding={18} radius={22}>
+
+        {/* View selector */}
+        <div style={{ display: 'flex', gap: 4, padding: 3, background: t.surface2, borderRadius: 12, marginBottom: 16 }}>
+          {viewOpts.map(o => (
+            <div key={o.id} onClick={() => setView(o.id)}
+              style={{ flex: 1, textAlign: 'center', padding: '7px 0', borderRadius: 9, cursor: 'pointer', fontSize: 11.5, fontWeight: 500, background: view === o.id ? t.surface : 'transparent', color: view === o.id ? t.accent : t.text2, transition: 'all 0.15s', boxShadow: view === o.id ? '0 1px 4px rgba(0,0,0,0.1)' : 'none' }}>
+              {o.label}
+            </div>
+          ))}
+        </div>
+
+        {/* ── RESUMEN ── */}
+        {view === 'summary' && (
+          <div>
+            <div style={{ display: 'flex', gap: 14, marginBottom: 16 }}>
+              {/* Donut */}
+              <div style={{ position: 'relative', flexShrink: 0 }}>
+                <Donut theme={theme} data={donutData} size={110} thickness={14}/>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 8, color: t.text2 }}>Deuda</div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{(totalDebt/1000).toFixed(0)}k €</div>
+                </div>
+              </div>
+              {/* Metrics */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, justifyContent: 'center' }}>
+                <div>
+                  <div style={{ fontSize: 10, color: t.text2 }}>Cuota total mensual</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: t.negative }}>{totalMonthly.toLocaleString('es-ES')} €</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: t.text2 }}>Amortizado</div>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: t.positive }}>{overallPct}%</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Debt-to-income ratio */}
+            <div style={{ padding: '12px 14px', borderRadius: 14, background: debtRatio > 35 ? t.negative + '14' : t.positive + '12', marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600 }}>Ratio deuda/ingresos</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: debtRatio > 35 ? t.negative : t.positive }}>{debtRatio}%</div>
+              </div>
+              <div style={{ width: '100%', height: 6, background: t.surface2, borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min(100, debtRatio)}%`, height: '100%', background: debtRatio > 35 ? t.negative : t.positive, borderRadius: 3 }}/>
+              </div>
+              <div style={{ fontSize: 10, color: t.text3, marginTop: 4 }}>
+                {debtRatio <= 35 ? '✓ Dentro del límite recomendado (35%)' : '⚠ Supera el límite recomendado (35%)'}
+              </div>
+            </div>
+
+            {/* Interest cost */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderTop: `1px solid ${t.border}` }}>
+              <div style={{ fontSize: 11.5, color: t.text2 }}>Intereses totales restantes (est.)</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: t.negative }}>{(totalInterest/1000).toFixed(1).replace('.',',')}k €</div>
+            </div>
+          </div>
+        )}
+
+        {/* ── DESGLOSE ── */}
+        {view === 'breakdown' && (
+          <div>
+            {activeLoans.map((loan, i) => {
+              const pct = Math.round((loan.paid / loan.totalAmount) * 100);
+              const mo = (loan.remaining * loan.interestRate / 100) / 12;
+              return (
+                <div key={loan.id} style={{ paddingBottom: 14, marginBottom: i < activeLoans.length - 1 ? 14 : 0, borderBottom: i < activeLoans.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 10, background: loan.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PelasIcon name={loan.icon} size={15} color={loan.color}/>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700 }}>{loan.name}</div>
+                      <div style={{ fontSize: 11, color: t.text2 }}>{loan.entity} · TIN {loan.interestRate}% / TAE {loan.tae}%</div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: loan.color }}>
+                        {(loan.remaining/1000).toFixed(1)}k €
+                      </div>
+                      <div style={{ fontSize: 10, color: t.text3 }}>{loan.monthsRemaining}m</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <div style={{ flex: 1, padding: '6px 10px', borderRadius: 10, background: t.surface2 }}>
+                      <div style={{ fontSize: 9.5, color: t.text2 }}>Cuota</div>
+                      <div style={{ fontSize: 12, fontWeight: 700 }}>{loan.monthlyPayment} €/m</div>
+                    </div>
+                    <div style={{ flex: 1, padding: '6px 10px', borderRadius: 10, background: t.negative + '12' }}>
+                      <div style={{ fontSize: 9.5, color: t.text2 }}>Intereses/m</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: t.negative }}>{Math.round(mo)} €/m</div>
+                    </div>
+                    <div style={{ flex: 1, padding: '6px 10px', borderRadius: 10, background: t.positive + '12' }}>
+                      <div style={{ fontSize: 9.5, color: t.text2 }}>Amort.</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: t.positive }}>{pct}%</div>
+                    </div>
+                  </div>
+                  <div style={{ width: '100%', height: 5, background: t.surface2, borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: loan.color, borderRadius: 3 }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── PROYECCIÓN ── */}
+        {view === 'timeline' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 10 }}>
+              <div>
+                <div style={{ fontSize: 10.5, color: t.text2 }}>Deuda actual</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: t.negative }}>
+                  {(totalDebt/1000).toFixed(1).replace('.',',')}k €
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 10.5, color: t.text2 }}>En 12 meses</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: t.positive }}>
+                  {(timelineData[11]/1000).toFixed(1).replace('.',',')}k €
+                </div>
+              </div>
+            </div>
+            <div style={{ borderRadius: 12, background: t.surface2, padding: '8px 8px 0', marginBottom: 10, overflow: 'hidden' }}>
+              <Sparkline data={timelineData} color={t.negative} width={300} height={80} fill={true}/>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9.5, color: t.text3, marginBottom: 12 }}>
+              <span>Hoy</span><span>+6m</span><span>+12m</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {activeLoans.map(loan => {
+                const projRemaining12 = Math.max(0, loan.remaining - loan.monthlyPayment * 12);
+                const reduction = loan.remaining - projRemaining12;
+                return (
+                  <div key={loan.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: 3, background: loan.color, flexShrink: 0 }}/>
+                    <div style={{ flex: 1, fontSize: 11.5 }}>{loan.name}</div>
+                    <div style={{ fontSize: 11, color: t.text2 }}>{(loan.remaining/1000).toFixed(0)}k</div>
+                    <div style={{ fontSize: 11, color: t.positive, fontWeight: 600 }}>−{(reduction/1000).toFixed(0)}k €</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </Card>
+    </div>
+  );
+};
+
 // ── Widget config sheet (slide from bottom) ───────────────────────────────────
 
 const STATS_WIDGET_LIBRARY = [
@@ -1528,6 +1718,7 @@ const STATS_WIDGET_LIBRARY = [
   { id: 'stats-recurring-annual', label: 'Gastos recurrentes anuales', icon: 'home', color: '#0066FF', enabled: true, component: WidgetStatsRecurringAnnual },
   { id: 'stats-budget-rate', label: 'Cumplimiento de presupuestos', icon: 'chart', color: '#3FB984', enabled: true, component: WidgetStatsBudgetRate },
   { id: 'stats-goals-rate', label: 'Tasa de éxito de metas', icon: 'goal', color: '#7C5CFF', enabled: true, component: WidgetStatsGoalsRate },
+  { id: 'stats-loans', label: 'Préstamos y deudas', icon: 'home', color: '#E16364', enabled: true, component: WidgetStatsLoans },
 ];
 
 const DEFAULT_STATS_WIDGETS = STATS_WIDGET_LIBRARY.map(widget => ({
@@ -1558,7 +1749,7 @@ const DEFAULT_VIEWS = [
   },
   {
     id: 'v3', name: 'Ahorros', icon: 'goal', color: '#3FB984',
-    widgets: makeViewWidgets(['stats-balance','stats-evolution','stats-savings','stats-goals-rate']),
+    widgets: makeViewWidgets(['stats-balance','stats-evolution','stats-savings','stats-goals-rate','stats-loans']),
   },
   {
     id: 'v4', name: 'Viajes', icon: 'plane', color: '#FF8A4C',
