@@ -348,7 +348,7 @@ const WidgetAccounts = ({ theme, hideBalance, onNavigate, settings = DEFAULT_WID
             onClick={() => onNavigate('account-detail', { account: { ...a, currency: 'EUR', shared: false, sharedWith: [] } })}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: a.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <PelasIcon name={a.icon} size={15} color={a.color}/>
+                <PelasIcon name={a.shared ? 'people' : a.icon} size={15} color={a.color}/>
               </div>
               {a.type === 'cash'
                 ? <div style={{ fontSize: 9.5, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Efectivo</div>
@@ -359,7 +359,13 @@ const WidgetAccounts = ({ theme, hideBalance, onNavigate, settings = DEFAULT_WID
             <div style={{ fontSize: 15, fontWeight: 600 }}>{fmtEUR(a.balance, hideBalance)}</div>
           </Card>
         ))}
-
+        {/* Añadir cuenta nueva */}
+        <div onClick={() => onNavigate('accounts')} style={{ minWidth: 130, flexShrink: 0, cursor: 'pointer', borderRadius: 16, border: `2px dashed ${t.borderStrong}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 10px' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 18, background: t.accentSoft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <PelasIcon name="plus" size={18} color={t.accent} strokeWidth={2.4}/>
+          </div>
+          <div style={{ fontSize: 11.5, fontWeight: 500, color: t.accent, textAlign: 'center', lineHeight: 1.3 }}>Añadir cuenta nueva</div>
+        </div>
       </div>
     </div>
   );
