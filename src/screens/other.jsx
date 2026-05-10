@@ -608,6 +608,7 @@ const BUDGET_PERIODS = [
   { id: 'monthly',   label: 'Mensual' },
   { id: 'quarterly', label: 'Trimestral' },
   { id: 'yearly',    label: 'Anual' },
+  { id: 'custom',    label: 'Personalizado' },
 ];
 
 const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
@@ -619,6 +620,8 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
     spent: initial?.spent?.toString() || '0',
     color: initial?.color || BUDGET_COLORS[0],
     period: initial?.period || 'monthly',
+    dateFrom: initial?.dateFrom || '',
+    dateTo: initial?.dateTo || '',
     categories: initial?.categories || [],
   });
   const set = (k, v) => setForm(s => ({ ...s, [k]: v }));
@@ -682,14 +685,45 @@ const AddBudgetSheet = ({ theme, initial, onSave, onClose }) => {
           {/* Periodo */}
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 11, color: t.text2, fontWeight: 500, marginBottom: 8 }}>Periodo</div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {BUDGET_PERIODS.map(p => (
                 <div key={p.id} onClick={() => set('period', p.id)}
-                  style={{ flex: 1, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.period === p.id ? t.accent : t.surface2, color: form.period === p.id ? '#fff' : t.text2, transition: 'all 0.18s' }}>
+                  style={{ height: 36, paddingLeft: 12, paddingRight: 12, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: form.period === p.id ? t.accent : t.surface2, color: form.period === p.id ? '#fff' : t.text2, transition: 'all 0.18s' }}>
                   {p.label}
                 </div>
               ))}
             </div>
+            {form.period === 'custom' && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 10.5, color: t.text3, marginBottom: 6 }}>Los presupuestos con fechas delimitadas no se repiten</div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: t.text2, marginBottom: 4 }}>Fecha inicio</div>
+                    <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 12, padding: '0 12px', height: 44, gap: 8 }}>
+                      <PelasIcon name="calendar" size={14} color={t.text2}/>
+                      <input
+                        type="date"
+                        value={form.dateFrom}
+                        onChange={e => set('dateFrom', e.target.value)}
+                        style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13 }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: t.text2, marginBottom: 4 }}>Fecha fin</div>
+                    <div style={{ display: 'flex', alignItems: 'center', background: t.surface2, border: `1px solid ${t.border}`, borderRadius: 12, padding: '0 12px', height: 44, gap: 8 }}>
+                      <PelasIcon name="calendar" size={14} color={t.text2}/>
+                      <input
+                        type="date"
+                        value={form.dateTo}
+                        onChange={e => set('dateTo', e.target.value)}
+                        style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 13 }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Límite y ya gastado */}
