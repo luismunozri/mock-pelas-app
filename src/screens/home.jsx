@@ -5,7 +5,8 @@ import { Card, SectionTitle, TxRow, Progress, Sparkline, CreditCard, Donut } fro
 import {
   PELAS_ACCOUNTS, PELAS_CARDS, PELAS_TRANSACTIONS, PELAS_CATEGORIES,
   PELAS_SERIES_30D, PELAS_BUDGETS, PELAS_GOALS, PELAS_HOLDINGS, PELAS_USER,
-  PELAS_INCOME_CATEGORIES, PELAS_LOANS,
+  PELAS_INCOME_CATEGORIES, PELAS_LOANS, PELAS_MONTHLY,
+  PELAS_UPCOMING_CHARGES, PELAS_SUBSCRIPTIONS, PELAS_FRIEND_DEBTS, PELAS_ALERTS,
 } from '../data';
 
 const CARD_COLORS = [
@@ -65,28 +66,46 @@ const Toggle = ({ on, color = '#0066FF', onChange }) => (
 // ── Default widget config ────────────────────────────────────────────────────
 // tabletCol: 'full' = ambas columnas · 'left' = col izquierda · 'right' = col derecha
 const DEFAULT_WIDGETS = [
-  { id: 'balance',          label: 'Visión global',               icon: 'chart',    enabled: true, tabletCol: 'full'  },
-  { id: 'accounts',         label: 'Carrusel de cuentas',         icon: 'wallet',   enabled: true, tabletCol: 'full'  },
-  { id: 'transactions',     label: 'Movimientos recientes',       icon: 'card',     enabled: true, tabletCol: 'right' },
-  { id: 'cards',            label: 'Mis tarjetas',                icon: 'card',     enabled: true, tabletCol: 'left'  },
-  { id: 'budget-bar',       label: 'Barra de presupuesto',        icon: 'goal',     enabled: true, tabletCol: 'left'  },
-  { id: 'budgets',          label: 'Presupuestos detallados',     icon: 'goal',     enabled: true, tabletCol: 'right' },
-  { id: 'donut-both',       label: 'Gastos e ingresos combinado', icon: 'chart',    enabled: true, tabletCol: 'full'  },
-  { id: 'shared-accounts',  label: 'Cuentas compartidas',         icon: 'people',   enabled: true, tabletCol: 'full'  },
-  { id: 'goals',            label: 'Objetivos de ahorro',         icon: 'shield',   enabled: true, tabletCol: 'full'  },
-  { id: 'loans',            label: 'Mis préstamos',               icon: 'home',     enabled: true, tabletCol: 'left'  },
+  { id: 'balance',            label: 'Visión global',               icon: 'chart',    enabled: true, tabletCol: 'full'  },
+  { id: 'accounts',           label: 'Carrusel de cuentas',         icon: 'wallet',   enabled: true, tabletCol: 'full'  },
+  { id: 'monthly-summary',    label: 'Resumen del mes',             icon: 'percent',  enabled: true, tabletCol: 'left'  },
+  { id: 'financial-health',   label: 'Salud financiera',            icon: 'heart',    enabled: true, tabletCol: 'right' },
+  { id: 'balance-forecast',   label: 'Previsión fin de mes',        icon: 'trending', enabled: true, tabletCol: 'left'  },
+  { id: 'net-worth',          label: 'Patrimonio neto',             icon: 'wallet',   enabled: true, tabletCol: 'right' },
+  { id: 'transactions',       label: 'Movimientos recientes',       icon: 'card',     enabled: true, tabletCol: 'right' },
+  { id: 'upcoming-charges',   label: 'Próximos cargos',             icon: 'calendar', enabled: true, tabletCol: 'left'  },
+  { id: 'subscriptions',      label: 'Suscripciones activas',       icon: 'refresh',  enabled: true, tabletCol: 'right' },
+  { id: 'top-merchants',      label: 'Top comercios',               icon: 'store',    enabled: true, tabletCol: 'left'  },
+  { id: 'friend-debts',       label: 'Cuentas con amigos',          icon: 'people',   enabled: true, tabletCol: 'right' },
+  { id: 'alerts',             label: 'Alarmas',                     icon: 'bell',     enabled: true, tabletCol: 'full'  },
+  { id: 'cards',              label: 'Mis tarjetas',                icon: 'card',     enabled: true, tabletCol: 'left'  },
+  { id: 'budget-bar',         label: 'Barra de presupuesto',        icon: 'goal',     enabled: true, tabletCol: 'left'  },
+  { id: 'budgets',            label: 'Presupuestos detallados',     icon: 'goal',     enabled: true, tabletCol: 'right' },
+  { id: 'donut-both',         label: 'Gastos e ingresos combinado', icon: 'chart',    enabled: true, tabletCol: 'full'  },
+  { id: 'shared-accounts',    label: 'Cuentas compartidas',         icon: 'people',   enabled: true, tabletCol: 'full'  },
+  { id: 'goals',              label: 'Objetivos de ahorro',         icon: 'shield',   enabled: true, tabletCol: 'full'  },
+  { id: 'loans',              label: 'Mis préstamos',               icon: 'home',     enabled: true, tabletCol: 'left'  },
 ];
 
 const DEFAULT_WIDGET_SETTINGS = {
-  balance:      { accounts: ['a1','a2','a3','a4'], includeInvestments: false, chartPeriod: '30d', currency: 'EUR' },
-  accounts:     { order: ['a1','a2','a3','a4'], hidden: [] },
-  transactions: { count: 4 },
-  cards:        { order: ['c1','c2'], hidden: [] },
-  'budget-bar': { mode: 'simple' },
-  budgets:      { order: ['b1','b2','b3','b4'], hidden: [] },
-  'donut-both': { period: 'month' },
-  goals:        { order: ['g1','g2','g3'], hidden: [] },
-  loans:        {},
+  balance:           { accounts: ['a1','a2','a3','a4'], includeInvestments: false, chartPeriod: '30d', currency: 'EUR' },
+  accounts:          { order: ['a1','a2','a3','a4'], hidden: [] },
+  transactions:      { count: 4 },
+  cards:             { order: ['c1','c2'], hidden: [] },
+  'budget-bar':      { mode: 'simple' },
+  budgets:           { order: ['b1','b2','b3','b4'], hidden: [] },
+  'donut-both':      { period: 'month' },
+  goals:             { order: ['g1','g2','g3'], hidden: [] },
+  loans:             {},
+  'monthly-summary': {},
+  'financial-health':{},
+  'balance-forecast':{},
+  'net-worth':       {},
+  'upcoming-charges':{},
+  subscriptions:     {},
+  'top-merchants':   {},
+  'friend-debts':    {},
+  alerts:            {},
 };
 
 const WIDGETS_WITH_SETTINGS = [
@@ -846,6 +865,567 @@ const WidgetDonutCombined = ({ theme, settings = {} }) => {
   );
 };
 
+// ── Widget: Próximos cargos ───────────────────────────────────────────────────
+
+const WidgetUpcomingCharges = ({ theme, onNavigate }) => {
+  const t = T(theme);
+  const totalMonth = PELAS_UPCOMING_CHARGES.reduce((s, c) => s + c.amount, 0);
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Próximos cargos" action="Ver todo" onAction={() => onNavigate('loans')}/>
+      <Card theme={theme} padding={0} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px 10px' }}>
+          <div style={{ fontSize: 11, color: t.text2 }}>Total junio</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: t.negative }}>{totalMonth.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</div>
+        </div>
+        {PELAS_UPCOMING_CHARGES.map((c) => {
+          const urgent = c.daysLeft <= 3;
+          const soon   = c.daysLeft <= 7;
+          const dColor = urgent ? t.negative : soon ? t.warning : t.positive;
+          const dLabel = c.daysLeft === 0 ? 'Hoy' : c.daysLeft === 1 ? 'Mañana' : `En ${c.daysLeft} días`;
+          return (
+            <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderTop: `1px solid ${t.border}` }}>
+              <div style={{ width: 36, height: 36, borderRadius: 11, background: c.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name={c.icon} size={15} color={c.color}/>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
+                <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{c.dueDate} · {c.recurrent}</div>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700 }}>{c.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</div>
+                <div style={{ fontSize: 10.5, color: dColor, fontWeight: 600, marginTop: 1 }}>{dLabel}</div>
+              </div>
+            </div>
+          );
+        })}
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Resumen mensual (gasto/ingreso/ahorro/tasa) ───────────────────────
+
+const WidgetMonthlySummary = ({ theme, hideBalance }) => {
+  const t = T(theme);
+  const income   = 3120;
+  const expenses = 1842.58;
+  const saved    = income - expenses;
+  const savingsRate = Math.round((saved / income) * 100);
+  const rateColor   = savingsRate >= 20 ? t.positive : savingsRate >= 10 ? t.warning : t.negative;
+  const kpis = [
+    { label: 'Ingresos',     value: income,    color: t.positive, icon: 'arrow-down', fmt: v => v.toLocaleString('es-ES') + ' €' },
+    { label: 'Gastos',       value: expenses,  color: t.negative, icon: 'arrow-up',   fmt: v => v.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €' },
+    { label: 'Ahorro',       value: saved,     color: t.accent,   icon: 'shield',     fmt: v => v.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €' },
+    { label: 'Tasa ahorro',  value: savingsRate,color: rateColor, icon: 'percent',    fmt: v => v + '%' },
+  ];
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Resumen del mes" action="Mayo 2026"/>
+      <Card theme={theme} padding={16} radius={20}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          {kpis.map(k => (
+            <div key={k.label} style={{ padding: '10px 12px', borderRadius: 13, background: t.surface2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 5 }}>
+                <div style={{ width: 18, height: 18, borderRadius: 6, background: k.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PelasIcon name={k.icon} size={10} color={k.color} strokeWidth={2.4}/>
+                </div>
+                <div style={{ fontSize: 10.5, color: t.text3 }}>{k.label}</div>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: -0.3, color: k.color }}>
+                {hideBalance ? '••••' : k.fmt(k.value)}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+            <div style={{ fontSize: 11, color: t.text2 }}>Progreso de ahorro mensual</div>
+            <div style={{ fontSize: 11, fontWeight: 600, color: rateColor }}>{savingsRate}%</div>
+          </div>
+          <Progress value={savingsRate} color={rateColor} track={t.surface2} height={6}/>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 10, color: t.text3 }}>
+            <span>0%</span>
+            <span style={{ color: t.text2 }}>Objetivo mínimo: 20%</span>
+            <span>50%+</span>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Salud financiera ──────────────────────────────────────────────────
+
+const WidgetFinancialHealth = ({ theme }) => {
+  const t = T(theme);
+  const income    = 3120;
+  const expenses  = 1842.58;
+  const savings   = income - expenses;
+  const savingsRate    = (savings / income) * 100;
+  const fixedPayments  = PELAS_LOANS.reduce((s, l) => s + l.monthlyPayment, 0);
+  const debtRatio      = (fixedPayments / income) * 100;
+  const emergencySaved = PELAS_GOALS.find(g => g.id === 'g2')?.saved ?? 0;
+  const emergencyMonths = emergencySaved / expenses;
+
+  const savingsScore  = Math.min(100, Math.round(savingsRate * 2.5));
+  const debtScore     = Math.max(0,   Math.round((50 - debtRatio) * 2));
+  const emergencyScore= Math.min(100, Math.round(emergencyMonths / 6 * 100));
+  const overall       = Math.round((savingsScore + debtScore + emergencyScore) / 3);
+  const scoreColor    = overall >= 70 ? t.positive : overall >= 45 ? t.warning : t.negative;
+  const scoreLabel    = overall >= 70 ? 'Buena' : overall >= 45 ? 'Moderada' : 'Frágil';
+
+  const components = [
+    { label: 'Tasa de ahorro',    score: savingsScore,   detail: savingsRate.toFixed(1) + '%',            icon: 'shield',  color: '#3FB984' },
+    { label: 'Carga de deuda',    score: debtScore,      detail: debtRatio.toFixed(1) + '% de ingresos', icon: 'card',    color: '#7C5CFF' },
+    { label: 'Fondo emergencia',  score: emergencyScore, detail: emergencyMonths.toFixed(1) + ' meses',  icon: 'wallet',  color: '#FF8A4C' },
+  ];
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Salud financiera"/>
+      <Card theme={theme} padding={16} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
+          <div style={{ position: 'relative', width: 80, height: 80, flexShrink: 0 }}>
+            <Donut theme={theme} size={80} thickness={9} data={[
+              { v: overall,       color: scoreColor },
+              { v: 100 - overall, color: theme === 'dark' ? '#2A2C3C' : '#E6E8EE' },
+            ]}/>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: 19, fontWeight: 700, color: scoreColor, letterSpacing: -0.5 }}>{overall}</div>
+            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: scoreColor, marginBottom: 3 }}>{scoreLabel}</div>
+            <div style={{ fontSize: 11.5, color: t.text2, lineHeight: 1.45 }}>
+              Basado en ahorro mensual, carga de deuda y fondo de emergencia
+            </div>
+          </div>
+        </div>
+        {components.map((c, i) => (
+          <div key={c.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderTop: `1px solid ${t.border}` }}>
+            <div style={{ width: 28, height: 28, borderRadius: 9, background: c.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PelasIcon name={c.icon} size={12} color={c.color}/>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <div style={{ fontSize: 12, fontWeight: 500 }}>{c.label}</div>
+                <div style={{ fontSize: 11, color: t.text2 }}>{c.detail}</div>
+              </div>
+              <Progress value={c.score} color={c.color} track={t.surface2} height={4}/>
+            </div>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Previsión de saldo a fin de mes ───────────────────────────────────
+
+const WidgetBalanceForecast = ({ theme, hideBalance }) => {
+  const t = T(theme);
+  const avgIncome   = PELAS_MONTHLY.reduce((s, m) => s + m.i, 0) / PELAS_MONTHLY.length;
+  const avgExpenses = PELAS_MONTHLY.reduce((s, m) => s + m.v, 0) / PELAS_MONTHLY.length;
+  const currentBalance = PELAS_ACCOUNTS.reduce((s, a) => s + a.balance, 0);
+  const daysInMonth  = 31;
+  const daysElapsed  = 11;
+  const daysLeft     = daysInMonth - daysElapsed;
+  const dailyNet     = (avgIncome - avgExpenses) / daysInMonth;
+  const projectedNet = Math.round(dailyNet * daysLeft);
+  const forecast     = Math.round(currentBalance + projectedNet);
+  const isPositive   = projectedNet >= 0;
+  const changeColor  = isPositive ? t.positive : t.negative;
+
+  const sparkData = [...PELAS_MONTHLY.map((m, i) => 3000 + i * 210 + m.i * 0.05), forecast];
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Previsión fin de mes"/>
+      <Card theme={theme} padding={16} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 10.5, color: t.text2, marginBottom: 2 }}>Saldo previsto a 31 may</div>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8 }}>
+              {hideBalance ? '••••••' : forecast.toLocaleString('es-ES') + ' €'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: changeColor }}>
+                {isPositive ? '+' : ''}{projectedNet.toLocaleString('es-ES')} €
+              </div>
+              <div style={{ fontSize: 11, color: t.text3 }}>previsión vs. hoy</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: t.text3 }}>Saldo actual</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>
+              {hideBalance ? '••••' : currentBalance.toLocaleString('es-ES', { minimumFractionDigits: 0 }) + ' €'}
+            </div>
+            <div style={{ fontSize: 10, color: t.text3, marginTop: 1 }}>{daysLeft} días restantes</div>
+          </div>
+        </div>
+        <Sparkline data={sparkData} width={320} height={52} color={t.accent}/>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, fontSize: 9.5, color: t.text3 }}>
+          {[...PELAS_MONTHLY.map(m => m.m), 'Prev.'].map((l, i) => (
+            <span key={i} style={{ fontWeight: i === PELAS_MONTHLY.length ? 600 : 400, color: i === PELAS_MONTHLY.length ? t.accent : t.text3 }}>{l}</span>
+          ))}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '7px 10px', borderRadius: 10, background: t.surface2 }}>
+          <div style={{ width: 5, height: 5, borderRadius: 3, background: t.text3, flexShrink: 0 }}/>
+          <div style={{ fontSize: 10.5, color: t.text3 }}>Basado en la media de ingresos y gastos de los últimos 6 meses</div>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Patrimonio neto ───────────────────────────────────────────────────
+
+const WidgetNetWorth = ({ theme, hideBalance }) => {
+  const t = T(theme);
+  const liquid      = PELAS_ACCOUNTS.reduce((s, a) => s + a.balance, 0);
+  const investments = PELAS_HOLDINGS.reduce((s, h) => s + h.value, 0);
+  const realEstate  = 250000;
+  const debt        = PELAS_LOANS.reduce((s, l) => s + l.remaining, 0);
+  const totalAssets = liquid + investments + realEstate;
+  const netWorth    = totalAssets - debt;
+  const fmtK = (v, sign = false) => {
+    const abs = Math.abs(v);
+    const str = abs >= 1000 ? (abs / 1000).toFixed(1) + 'k' : abs.toLocaleString('es-ES', { minimumFractionDigits: 0 });
+    return (sign && v >= 0 ? '+' : sign && v < 0 ? '-' : '') + str + ' €';
+  };
+  const rows = [
+    { label: 'Cuentas bancarias', value: liquid,      color: '#3FB984', icon: 'wallet',   positive: true  },
+    { label: 'Inversiones',       value: investments, color: '#0066FF', icon: 'trending', positive: true  },
+    { label: 'Inmuebles',         value: realEstate,  color: '#7C5CFF', icon: 'home',     positive: true  },
+    { label: 'Deudas',            value: debt,        color: t.negative,icon: 'card',     positive: false },
+  ];
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Patrimonio neto"/>
+      <Card theme={theme} padding={16} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 10.5, color: t.text2, marginBottom: 2 }}>Patrimonio neto</div>
+            <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -0.8, color: netWorth >= 0 ? t.positive : t.negative }}>
+              {hideBalance ? '••••••' : fmtK(netWorth)}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: t.text3 }}>Activos totales</div>
+            <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2 }}>
+              {hideBalance ? '••••' : fmtK(totalAssets)}
+            </div>
+          </div>
+        </div>
+        {rows.map((row, i) => (
+          <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderTop: `1px solid ${t.border}` }}>
+            <div style={{ width: 28, height: 28, borderRadius: 9, background: row.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PelasIcon name={row.icon} size={12} color={row.color}/>
+            </div>
+            <div style={{ flex: 1, fontSize: 12.5, fontWeight: 500 }}>{row.label}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: row.positive ? row.color : t.negative }}>
+              {hideBalance ? '••••' : (row.positive ? '+' : '-') + fmtK(row.value)}
+            </div>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Suscripciones activas ─────────────────────────────────────────────
+
+const WidgetSubscriptions = ({ theme }) => {
+  const t = T(theme);
+  const active = PELAS_SUBSCRIPTIONS.filter(s => s.active);
+  const totalMonthly = active.reduce((s, sub) => s + sub.amount, 0);
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Suscripciones"/>
+      <Card theme={theme} padding={0} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px 10px' }}>
+          <div style={{ fontSize: 11, color: t.text2 }}>{active.length} activas</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>{totalMonthly.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €/mes</div>
+        </div>
+        {PELAS_SUBSCRIPTIONS.map(sub => (
+          <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 16px', borderTop: `1px solid ${t.border}`, opacity: sub.active ? 1 : 0.45 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 11, background: sub.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PelasIcon name={sub.icon} size={15} color={sub.color}/>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.name}</div>
+              <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{sub.category} · {sub.nextDate}</div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: 700 }}>{sub.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €</div>
+              <div style={{ fontSize: 10, color: sub.active ? t.positive : t.text3, fontWeight: 500, marginTop: 1 }}>
+                {sub.active ? 'Activa' : 'Pausada'}
+              </div>
+            </div>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Top comercios ─────────────────────────────────────────────────────
+
+const WidgetTopMerchants = ({ theme }) => {
+  const t = T(theme);
+  const merchantMap = {};
+  PELAS_TRANSACTIONS.forEach(tx => {
+    if (tx.amount < 0) {
+      merchantMap[tx.name] = (merchantMap[tx.name] || 0) + Math.abs(tx.amount);
+    }
+  });
+  const top = Object.entries(merchantMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, total]) => {
+      const tx  = PELAS_TRANSACTIONS.find(tx => tx.name === name);
+      const cat = PELAS_CATEGORIES.find(c => c.id === tx?.cat);
+      return { name, total, color: cat?.color || '#A2A2A7', icon: cat?.icon || 'cart' };
+    });
+  const maxVal = top[0]?.total || 1;
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Top comercios"/>
+      <Card theme={theme} padding={16} radius={20}>
+        {top.map((m, i) => (
+          <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < top.length - 1 ? `1px solid ${t.border}` : 'none' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: t.text3, width: 14, textAlign: 'center', flexShrink: 0 }}>{i + 1}</div>
+            <div style={{ width: 30, height: 30, borderRadius: 9, background: m.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <PelasIcon name={m.icon} size={13} color={m.color}/>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.name}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 6 }}>
+                  {m.total.toLocaleString('es-ES', { minimumFractionDigits: 0 })} €
+                </div>
+              </div>
+              <div style={{ width: '100%', height: 4, background: t.surface2, borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ width: `${(m.total / maxVal) * 100}%`, height: '100%', borderRadius: 2, background: m.color }}/>
+              </div>
+            </div>
+          </div>
+        ))}
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Cuentas pendientes con amigos ─────────────────────────────────────
+
+const WidgetFriendDebts = ({ theme }) => {
+  const t = T(theme);
+  const owedToMe = PELAS_FRIEND_DEBTS.filter(d => d.type === 'owed_to_me');
+  const iOwe     = PELAS_FRIEND_DEBTS.filter(d => d.type === 'i_owe');
+  const netBal   = owedToMe.reduce((s, d) => s + d.amount, 0) - iOwe.reduce((s, d) => s + d.amount, 0);
+
+  const DebtRow = ({ d }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0' }}>
+      <div style={{ width: 34, height: 34, borderRadius: 11, background: d.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 11, fontWeight: 700, color: d.color }}>
+        {d.initials}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: 500 }}>{d.name}</div>
+        <div style={{ fontSize: 11, color: t.text3, marginTop: 1 }}>{d.concept} · {d.date}</div>
+      </div>
+      <div style={{ fontSize: 13.5, fontWeight: 700, color: d.type === 'owed_to_me' ? t.positive : t.negative, flexShrink: 0 }}>
+        {d.type === 'owed_to_me' ? '+' : '–'}{d.amount.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginBottom: 22 }}>
+      <SectionTitle theme={theme} title="Cuentas con amigos" action="Dividir gasto"/>
+      <Card theme={theme} padding={14} radius={20}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 12, background: t.surface2, marginBottom: 12 }}>
+          <div style={{ fontSize: 11.5, color: t.text2 }}>Balance neto</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: netBal >= 0 ? t.positive : t.negative }}>
+            {netBal >= 0 ? '+' : ''}{netBal.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+          </div>
+        </div>
+        {owedToMe.length > 0 && (
+          <>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: t.positive, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Me deben</div>
+            {owedToMe.map(d => <DebtRow key={d.id} d={d}/>)}
+          </>
+        )}
+        {iOwe.length > 0 && (
+          <>
+            <div style={{ width: '100%', height: 1, background: t.border, margin: '8px 0' }}/>
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: t.negative, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>Debo</div>
+            {iOwe.map(d => <DebtRow key={d.id} d={d}/>)}
+          </>
+        )}
+        <div style={{ marginTop: 12 }}>
+          <button style={{ width: '100%', height: 40, borderRadius: 20, border: 'none', background: t.accentSoft, color: t.accent, fontFamily: 'inherit', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+            + Añadir cuenta pendiente
+          </button>
+        </div>
+      </Card>
+    </div>
+  );
+};
+
+// ── Widget: Alarmas ───────────────────────────────────────────────────────────
+
+const ALERT_KPI_OPTIONS = [
+  { id: 'category_spend',     label: 'Gasto en categoría',     unit: '€', icon: 'cart'    },
+  { id: 'total_monthly_spend',label: 'Gasto total mensual',    unit: '€', icon: 'wallet'  },
+  { id: 'savings_rate',       label: 'Tasa de ahorro',         unit: '%', icon: 'shield'  },
+  { id: 'out_of_city_spend',  label: 'Gasto fuera de Madrid',  unit: '€', icon: 'globe'   },
+  { id: 'single_transaction', label: 'Gasto en un solo pago',  unit: '€', icon: 'card'    },
+];
+
+const WidgetAlerts = ({ theme }) => {
+  const t = T(theme);
+  const [alerts, setAlerts]     = useState(PELAS_ALERTS);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm]         = useState({ kpiId: 'category_spend', comparison: 'above', threshold: '', name: '' });
+
+  const triggered = alerts.filter(a => a.triggered && a.active);
+
+  const handleCreate = () => {
+    if (!form.threshold) return;
+    const kpi = ALERT_KPI_OPTIONS.find(k => k.id === form.kpiId);
+    const auto = `${kpi?.label} ${form.comparison === 'above' ? '>' : '<'} ${form.threshold} ${kpi?.unit}`;
+    setAlerts(prev => [...prev, {
+      id: 'al' + Date.now(), name: form.name || auto,
+      kpi: form.kpiId, threshold: parseFloat(form.threshold),
+      comparison: form.comparison, active: true, triggered: false, color: '#0066FF', currentValue: 0,
+    }]);
+    setForm({ kpiId: 'category_spend', comparison: 'above', threshold: '', name: '' });
+    setShowCreate(false);
+  };
+
+  return (
+    <div style={{ marginBottom: 22, position: 'relative' }}>
+      <SectionTitle theme={theme} title="Alarmas" action="+ Nueva" onAction={() => setShowCreate(true)}/>
+
+      {triggered.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 12, background: 'rgba(225,99,100,0.10)', border: '1px solid rgba(225,99,100,0.28)', marginBottom: 10 }}>
+          <PelasIcon name="warning" size={14} color={t.negative}/>
+          <div style={{ fontSize: 12, color: t.negative, fontWeight: 500 }}>
+            {triggered.length} alarma{triggered.length !== 1 ? 's' : ''} activada{triggered.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+      )}
+
+      <Card theme={theme} padding={0} radius={20}>
+        {alerts.length === 0 ? (
+          <div style={{ padding: '20px', textAlign: 'center', fontSize: 13, color: t.text2 }}>Sin alarmas configuradas</div>
+        ) : alerts.map((al, i) => {
+          const fired = al.triggered && al.active;
+          const kpi   = ALERT_KPI_OPTIONS.find(k => k.id === al.kpi);
+          return (
+            <div key={al.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < alerts.length - 1 ? `1px solid ${t.border}` : 'none', opacity: al.active ? 1 : 0.45 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 11, background: fired ? 'rgba(225,99,100,0.14)' : al.color + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <PelasIcon name={fired ? 'warning' : 'bell'} size={14} color={fired ? t.negative : al.color}/>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{al.name}</div>
+                {al.currentValue !== undefined && (
+                  <div style={{ fontSize: 11, color: fired ? t.negative : t.text3, marginTop: 1, fontWeight: fired ? 600 : 400 }}>
+                    Actual: {al.currentValue}{al.kpi === 'savings_rate' ? '%' : ' €'}{fired ? ' · ¡Activada!' : ''}
+                  </div>
+                )}
+              </div>
+              <Toggle on={al.active} color={al.color} onChange={() => setAlerts(prev => prev.map(a => a.id === al.id ? { ...a, active: !a.active } : a))}/>
+            </div>
+          );
+        })}
+      </Card>
+
+      {/* Create alarm bottom sheet */}
+      {showCreate && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }} onClick={() => setShowCreate(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: t.bg, borderRadius: '24px 24px 0 0', maxHeight: '88%', display: 'flex', flexDirection: 'column', animation: 'slideUp 0.25s ease-out' }}>
+            <div style={{ padding: '14px 22px 0', flexShrink: 0 }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: t.borderStrong, margin: '0 auto 14px' }}/>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+                <div style={{ flex: 1, fontSize: 17, fontWeight: 600 }}>Nueva alarma</div>
+                <div onClick={() => setShowCreate(false)} style={{ width: 32, height: 32, borderRadius: 16, background: t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <PelasIcon name="x" size={15} color={t.text2}/>
+                </div>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 22px 24px' }}>
+              {/* KPI selector */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Indicador a monitorizar</div>
+                {ALERT_KPI_OPTIONS.map(kpi => (
+                  <div key={kpi.id} onClick={() => setForm(f => ({ ...f, kpiId: kpi.id }))} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 13, marginBottom: 6, background: form.kpiId === kpi.id ? t.accentSoft : t.surface, border: `1px solid ${form.kpiId === kpi.id ? t.accent : t.border}`, cursor: 'pointer', transition: 'all 0.15s' }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 9, background: form.kpiId === kpi.id ? t.accent + '28' : t.surface2, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <PelasIcon name={kpi.icon} size={13} color={form.kpiId === kpi.id ? t.accent : t.text2}/>
+                    </div>
+                    <div style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: form.kpiId === kpi.id ? t.accent : t.text }}>{kpi.label}</div>
+                    {form.kpiId === kpi.id && (
+                      <div style={{ width: 18, height: 18, borderRadius: 9, background: t.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <PelasIcon name="check" size={10} color="#fff" strokeWidth={3}/>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Condition */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Condición</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[{ id: 'above', label: 'Supera' }, { id: 'below', label: 'Baja de' }].map(cond => (
+                    <div key={cond.id} onClick={() => setForm(f => ({ ...f, comparison: cond.id }))} style={{ flex: 1, padding: '11px 0', borderRadius: 13, textAlign: 'center', fontSize: 13, fontWeight: 500, cursor: 'pointer', background: form.comparison === cond.id ? t.accent : t.surface, color: form.comparison === cond.id ? '#fff' : t.text2, border: `1px solid ${form.comparison === cond.id ? t.accent : t.border}`, transition: 'all 0.15s' }}>
+                      {cond.label}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Threshold */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Umbral</div>
+                <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 16px', height: 52, gap: 10 }}>
+                  <input
+                    value={form.threshold}
+                    onChange={e => setForm(f => ({ ...f, threshold: e.target.value }))}
+                    placeholder="0"
+                    type="number"
+                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 18, fontWeight: 600 }}
+                  />
+                  <div style={{ fontSize: 15, color: t.text2, fontWeight: 500, flexShrink: 0 }}>
+                    {ALERT_KPI_OPTIONS.find(k => k.id === form.kpiId)?.unit}
+                  </div>
+                </div>
+              </div>
+              {/* Name */}
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: t.text2, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Nombre de la alarma (opcional)</div>
+                <div style={{ display: 'flex', alignItems: 'center', background: t.surface, border: `1px solid ${t.border}`, borderRadius: 13, padding: '0 16px', height: 48 }}>
+                  <input
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="p. ej. Límite mensual de ocio"
+                    style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: t.text, fontFamily: 'inherit', fontSize: 14 }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: '0 22px 28px', flexShrink: 0 }}>
+              <button onClick={handleCreate} style={{ width: '100%', height: 52, borderRadius: 26, border: 'none', background: t.accent, color: '#fff', fontFamily: 'inherit', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+                Crear alarma
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ── Add Card Sheet ────────────────────────────────────────────────────────────
 
 const BLANK_CARD = { bank: '', number: '', expiry: '', cvv: '', holder: '', type: 'visa', color: 'mesh-blue' };
@@ -1434,8 +2014,13 @@ const HomeConfigSheet = ({ theme, widgets, setWidgets, widgetSettings, setWidget
   const WIDGET_COLORS = {
     balance: '#0066FF', accounts: '#3FB984', transactions: '#7C5CFF',
     cards: '#FFC234', 'budget-bar': '#FF8A4C', budgets: '#FF8A4C',
-    'donut-both': '#7C5CFF',
+    'donut-both': '#7C5CFF', 'shared-accounts': '#3FB984',
     goals: '#1DBF7B', loans: '#E16364',
+    'monthly-summary': '#0066FF', 'financial-health': '#E16364',
+    'balance-forecast': '#7C5CFF', 'net-worth': '#3FB984',
+    'upcoming-charges': '#FF8A4C', subscriptions: '#1DB954',
+    'top-merchants': '#FFC234', 'friend-debts': '#7C5CFF',
+    alerts: '#FF8A4C',
   };
 
   return (
@@ -1621,6 +2206,24 @@ const HomeVariantA = ({ theme, onNavigate, tablet = false, tabletVertical = fals
         return <WidgetGoals key={w.id} theme={theme} onNavigate={onNavigate} settings={widgetSettings.goals}/>;
       case 'loans':
         return <WidgetLoans key={w.id} theme={theme} onNavigate={onNavigate}/>;
+      case 'monthly-summary':
+        return <WidgetMonthlySummary key={w.id} theme={theme} hideBalance={hideBalance}/>;
+      case 'financial-health':
+        return <WidgetFinancialHealth key={w.id} theme={theme}/>;
+      case 'balance-forecast':
+        return <WidgetBalanceForecast key={w.id} theme={theme} hideBalance={hideBalance}/>;
+      case 'net-worth':
+        return <WidgetNetWorth key={w.id} theme={theme} hideBalance={hideBalance}/>;
+      case 'upcoming-charges':
+        return <WidgetUpcomingCharges key={w.id} theme={theme} onNavigate={onNavigate}/>;
+      case 'subscriptions':
+        return <WidgetSubscriptions key={w.id} theme={theme}/>;
+      case 'top-merchants':
+        return <WidgetTopMerchants key={w.id} theme={theme}/>;
+      case 'friend-debts':
+        return <WidgetFriendDebts key={w.id} theme={theme}/>;
+      case 'alerts':
+        return <WidgetAlerts key={w.id} theme={theme}/>;
       default:
         return null;
     }

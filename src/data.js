@@ -207,3 +207,35 @@ export const PELAS_HOLDINGS = [
   { id: 'h5', symbol: 'ETH',   name: 'Ethereum',                 type: 'Cripto', value:  680.40, change:  -42.10, changePct: -5.82, sparkColor: '#E16364', spark: [62,60,64,58,55,52,50,48,46,44,42,40,38,36], iconKey: 'eth' },
   { id: 'h6', symbol: 'BBKCM', name: 'BBVA Bolsa USA Cubierto',  type: 'Fondo',  value: 1420.00, change:   18.20, changePct:  1.30, sparkColor: '#3FB984', spark: [50,48,52,54,52,56,58,56,60,62,60,64,66,68] },
 ];
+
+export const PELAS_UPCOMING_CHARGES = [
+  { id: 'uc1', name: 'Hipoteca BBVA',      icon: 'home',    color: '#0066FF', amount:  720.00, dueDate: '1 jun 2026',  daysLeft:  2, type: 'loan',         recurrent: 'Mensual' },
+  { id: 'uc2', name: 'Netflix',            icon: 'play',    color: '#E50914', amount:   15.99, dueDate: '3 jun 2026',  daysLeft:  4, type: 'subscription', recurrent: 'Mensual' },
+  { id: 'uc3', name: 'Préstamo coche',     icon: 'car',     color: '#7C5CFF', amount:  285.00, dueDate: '5 jun 2026',  daysLeft:  6, type: 'loan',         recurrent: 'Mensual' },
+  { id: 'uc4', name: 'Endesa · Luz',       icon: 'home',    color: '#FF8A4C', amount:   78.10, dueDate: '8 jun 2026',  daysLeft:  9, type: 'bill',         recurrent: 'Mensual' },
+  { id: 'uc5', name: 'Spotify Premium',    icon: 'refresh', color: '#1DB954', amount:   10.99, dueDate: '8 jun 2026',  daysLeft:  9, type: 'subscription', recurrent: 'Mensual' },
+  { id: 'uc6', name: 'Préstamo personal',  icon: 'wallet',  color: '#3FB984', amount:  156.00, dueDate: '9 jun 2026',  daysLeft: 10, type: 'loan',         recurrent: 'Mensual' },
+  { id: 'uc7', name: 'iCloud+ 2TB',        icon: 'refresh', color: '#007AFF', amount:    9.99, dueDate: '15 jun 2026', daysLeft: 16, type: 'subscription', recurrent: 'Mensual' },
+];
+
+export const PELAS_SUBSCRIPTIONS = [
+  { id: 's1', name: 'Netflix',          category: 'Streaming',     color: '#E50914', icon: 'play',    amount: 15.99, billing: 'Mensual', nextDate: '3 jun 2026',  active: true  },
+  { id: 's2', name: 'Spotify Premium',  category: 'Música',        color: '#1DB954', icon: 'refresh', amount: 10.99, billing: 'Mensual', nextDate: '8 jun 2026',  active: true  },
+  { id: 's3', name: 'iCloud+ 2TB',      category: 'Almacenamiento',color: '#007AFF', icon: 'refresh', amount:  9.99, billing: 'Mensual', nextDate: '15 jun 2026', active: true  },
+  { id: 's4', name: 'Adobe Creative',   category: 'Software',      color: '#FF0000', icon: 'edit',    amount: 54.99, billing: 'Mensual', nextDate: '20 jun 2026', active: true  },
+  { id: 's5', name: 'Amazon Prime',     category: 'Compras',       color: '#FF9900', icon: 'bag',     amount:  4.99, billing: 'Mensual', nextDate: '25 jun 2026', active: false },
+];
+
+export const PELAS_FRIEND_DEBTS = [
+  { id: 'fd1', name: 'Luis Muñoz',    initials: 'LM', color: '#0066FF', amount:  10.00, type: 'owed_to_me', concept: 'Cena El Nacional',   date: '15 abr' },
+  { id: 'fd2', name: 'Ana López',     initials: 'AL', color: '#3FB984', amount:  25.50, type: 'owed_to_me', concept: 'Entrada concierto',   date: '20 abr' },
+  { id: 'fd3', name: 'Juan García',   initials: 'JG', color: '#7C5CFF', amount: 100.00, type: 'i_owe',      concept: 'Viaje a Lisboa',       date: '12 mar' },
+  { id: 'fd4', name: 'María Sanz',    initials: 'MS', color: '#FF8A4C', amount:  45.00, type: 'i_owe',      concept: 'Vuelta Barcelona',     date: '14 mar' },
+];
+
+export const PELAS_ALERTS = [
+  { id: 'al1', name: 'Gasto Ocio > 200 €',           kpi: 'category_spend',      category: 'leisure', threshold: 200,  comparison: 'above', active: true,  triggered: true,  color: '#FF8A4C', currentValue: 215.88 },
+  { id: 'al2', name: 'Tasa de ahorro < 30%',          kpi: 'savings_rate',                             threshold:  30,  comparison: 'below', active: true,  triggered: false, color: '#3FB984', currentValue: 40.9   },
+  { id: 'al3', name: 'Gasto fuera de Madrid > 500 €', kpi: 'out_of_city_spend',                        threshold: 500,  comparison: 'above', active: true,  triggered: false, color: '#0066FF', currentValue: 280.00 },
+  { id: 'al4', name: 'Gasto mensual total > 2.000 €', kpi: 'total_monthly_spend',                      threshold: 2000, comparison: 'above', active: false, triggered: false, color: '#E16364', currentValue: 1842.58},
+];

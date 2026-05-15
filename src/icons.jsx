@@ -54,6 +54,10 @@ export function PelasIcon({ name, size = 20, color = 'currentColor', strokeWidth
     case 'calendar':return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>;
     case 'up':     return <svg {...props}><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>;
     case 'down':   return <svg {...props}><path d="M17 7 7 17"/><path d="M17 17H7V7"/></svg>;
+    case 'warning':return <svg {...props}><path d="M10.3 3.9 2 19h20L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke={color} strokeWidth={strokeWidth}/><circle cx="12" cy="16.5" r=".8" fill={color} stroke="none"/></svg>;
+    case 'percent':return <svg {...props}><circle cx="8" cy="8" r="2.5"/><circle cx="16" cy="16" r="2.5"/><path d="m20 4-16 16"/></svg>;
+    case 'store':  return <svg {...props}><path d="M3 6h18l-2 6H5z"/><path d="M5 12v8h14v-8"/><path d="M9 20v-4h6v4"/></svg>;
+    case 'handshake': return <svg {...props}><path d="M9 11 6 8 3 11l3 3"/><path d="m15 11 3-3 3 3-3 3"/><path d="M9 11h6"/><path d="M6 14c0 2 1 4 3 5l3-3 3 3c2-1 3-3 3-5"/></svg>;
     default: return null;
   }
 }
